@@ -3,10 +3,14 @@ requests>=2.31.0
 PyGithub>=2.1.1
 gitpython>=3.1.40
 
+# LangChain for chunking
+langchain>=0.1.0
+langchain-text-splitters>=0.0.1
+langchain-google-genai>=0.0.6
+
 # Embedding and Vector Store
-openai>=1.0.0
 chromadb>=0.4.22
-sentence-transformers>=2.2.2
+tiktoken>=0.5.2
 
 # Utilities
 python-dotenv>=1.0.0

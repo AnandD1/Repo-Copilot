@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     # GitHub API
     github_token: Optional[str] = None
     
-    # OpenAI API
-    openai_api_key: Optional[str] = None
+    # Google Gemini API
+    google_api_key: Optional[str] = None
     
     # ChromaDB
     chroma_persist_directory: str = "./chroma_db"
@@ -84,9 +84,25 @@ class Settings(BaseSettings):
         "**/htmlcov/**",
     ]
     
-    # Chunking settings
-    chunk_size: int = 1000  # characters
-    chunk_overlap: int = 200  # characters
+    # Chunking settings - Code files
+    code_chunk_target_tokens: int = 900
+    code_chunk_max_tokens: int = 1200
+    code_chunk_overlap_tokens: int = 120
+    
+    # Chunking settings - Markdown/Docs
+    doc_chunk_target_tokens: int = 1100
+    doc_chunk_max_tokens: int = 1500
+    doc_chunk_overlap_tokens: int = 150
+    
+    # Chunking settings - Config files
+    config_chunk_target_tokens: int = 700
+    config_chunk_max_tokens: int = 1000
+    config_chunk_overlap_tokens: int = 80
+    config_whole_file_max_tokens: int = 1200
+    
+    # Embedding settings
+    embedding_model: str = "models/gemini-embedding-001"
+    embedding_dimension: int = 3072  # Gemini embedding-001 dimension
     
     model_config = SettingsConfigDict(
         env_file=".env",

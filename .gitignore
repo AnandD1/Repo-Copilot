@@ -43,6 +43,7 @@ htmlcov/
 chroma_db/
 cloned_repos/
 temp_repos/
+embedding_cache/
 
 # Logs
 *.log
