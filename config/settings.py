@@ -108,6 +108,11 @@ class Settings(BaseSettings):
     embedding_device: str = "cpu"  # "cpu" or "cuda" for GPU acceleration
     embedding_normalize: bool = True  # Normalize embeddings for cosine similarity
     
+    # Ollama LLM settings
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen2.5-coder:7b-instruct"
+    ollama_temperature: float = 0.1  # Low temperature for code review
+    
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

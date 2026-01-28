@@ -7,6 +7,9 @@ gitpython>=3.1.40
 langchain>=0.1.0
 langchain-text-splitters>=0.0.1
 langchain-community>=0.0.20  # For HuggingFace embeddings
+langchain-ollama>=0.1.0  # For Ollama LLM integration
+langchain-core>=0.1.0
+langgraph>=0.0.1  # For workflow orchestration
 
 # Embedding and Vector Store
 qdrant-client>=1.7.0  # Qdrant vector database

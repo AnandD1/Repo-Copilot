@@ -55,7 +55,7 @@ def test_pr_fetching(repo_full_name: str = None, pr_number: int = None):
         fetcher = PRFetcher()
         pr_data = fetcher.fetch_pr(repo_full_name, pr_number)
         
-        print(f"\n✓ PR Data Retrieved:")
+        print("\n✓ PR Data Retrieved:")
         print(f"  Title: {pr_data.title}")
         print(f"  Author: {pr_data.author}")
         print(f"  State: {pr_data.state}")
@@ -69,7 +69,7 @@ def test_pr_fetching(repo_full_name: str = None, pr_number: int = None):
         if pr_data.labels:
             print(f"  Labels: {', '.join(pr_data.labels)}")
         
-        print(f"\n  Changed Files:")
+        print("\n  Changed Files:")
         for i, file in enumerate(pr_data.files[:5], 1):  # Show first 5
             print(f"    {i}. {file.filename} ({file.status})")
             print(f"       +{file.additions} -{file.deletions}")
@@ -93,7 +93,7 @@ def test_pr_fetching(repo_full_name: str = None, pr_number: int = None):
         if file_diffs:
             first_diff = file_diffs[0]
             print(f"\nExample: {first_diff.new_path}")
-            print(f"  Status: ", end="")
+            print("  Status: ", end="")
             if first_diff.is_new:
                 print("NEW FILE")
             elif first_diff.is_deleted:
@@ -109,7 +109,7 @@ def test_pr_fetching(repo_full_name: str = None, pr_number: int = None):
             # Show first hunk details
             if first_diff.hunks:
                 hunk = first_diff.hunks[0]
-                print(f"\n  Hunk 1:")
+                print("\n  Hunk 1:")
                 print(f"    Old lines: {hunk.old_start}-{hunk.old_start + hunk.old_count - 1}")
                 print(f"    New lines: {hunk.new_start}-{hunk.new_start + hunk.new_count - 1}")
                 print(f"    Changes: +{hunk.additions_count} -{hunk.deletions_count}")
@@ -119,14 +119,14 @@ def test_pr_fetching(repo_full_name: str = None, pr_number: int = None):
                 
                 # Show added lines with line numbers
                 if hunk.added_lines:
-                    print(f"\n    Added lines (with line numbers):")
+                    print("\n    Added lines (with line numbers):")
                     for line in hunk.added_lines[:5]:  # Show first 5
                         print(f"      L{line.new_line_no}: {line.content[:70]}")
                     if len(hunk.added_lines) > 5:
                         print(f"      ... and {len(hunk.added_lines) - 5} more")
         
         # Test review units
-        print(f"\n3. Building Review Units...")
+        print("\n3. Building Review Units...")
         print("-" * 80)
         
         builder = ReviewUnitBuilder(pr_data, file_diffs)
@@ -144,7 +144,7 @@ def test_pr_fetching(repo_full_name: str = None, pr_number: int = None):
             med_priority = len([u for u in units if u.priority == 2])
             low_priority = len([u for u in units if u.priority == 3])
             
-            print(f"  Priority distribution:")
+            print("  Priority distribution:")
             print(f"    High (1): {high_priority}")
             print(f"    Medium (2): {med_priority}")
             print(f"    Low (3): {low_priority}")
@@ -161,7 +161,7 @@ def test_pr_fetching(repo_full_name: str = None, pr_number: int = None):
                 print(f"    Priority: {unit.priority}")
                 
                 # Show diff snippet
-                print(f"\n  Diff snippet:")
+                print("\n  Diff snippet:")
                 snippet = unit.get_diff_snippet(max_lines=10)
                 for line in snippet.split('\n')[:15]:
                     print(f"    {line}")
@@ -170,11 +170,11 @@ def test_pr_fetching(repo_full_name: str = None, pr_number: int = None):
         print("\n" + "="*80)
         print("✓ PHASE 2 TEST COMPLETE!")
         print("="*80)
-        print(f"\nSummary:")
-        print(f"  ✓ PR data fetched successfully")
-        print(f"  ✓ {len(file_diffs)} files parsed into hunks")
-        print(f"  ✓ Review units created with multiple strategies")
-        print(f"  ✓ Line numbers accurately tracked for comments")
+        print("\nSummary:")
+        print("  ✓ PR data fetched successfully")
+        print("  ✓ {len(file_diffs)} files parsed into hunks")
+        print("  ✓ Review units created with multiple strategies")
+        print("  ✓ Line numbers accurately tracked for comments")
         
         fetcher.close()
         
