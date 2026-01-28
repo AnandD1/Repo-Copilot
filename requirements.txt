@@ -3,14 +3,15 @@ requests>=2.31.0
 PyGithub>=2.1.1
 gitpython>=3.1.40
 
-# LangChain for chunking
+# LangChain for chunking and embeddings
 langchain>=0.1.0
 langchain-text-splitters>=0.0.1
-langchain-google-genai>=0.0.6
+langchain-community>=0.0.20  # For HuggingFace embeddings
 
 # Embedding and Vector Store
-chromadb>=0.4.22
+qdrant-client>=1.7.0  # Qdrant vector database
 tiktoken>=0.5.2
+sentence-transformers>=2.2.0  # Required for HuggingFace BGE embeddings
 
 # Utilities
 python-dotenv>=1.0.0

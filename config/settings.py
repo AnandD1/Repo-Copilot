@@ -10,11 +10,13 @@ class Settings(BaseSettings):
     # GitHub API
     github_token: Optional[str] = None
     
-    # Google Gemini API
+    # Legacy Google Gemini API (no longer used, kept for backward compatibility)
     google_api_key: Optional[str] = None
     
-    # ChromaDB
-    chroma_persist_directory: str = "./chroma_db"
+    # Qdrant Vector Database
+    qdrant_url: str = "http://localhost:6333"  # Qdrant server URL
+    qdrant_api_key: Optional[str] = None  # Optional for cloud Qdrant
+    qdrant_collection_name: str = "code_embeddings"  # Collection name
     
     # Ingestion settings
     temp_clone_directory: str = "./temp_repos"
@@ -101,8 +103,10 @@ class Settings(BaseSettings):
     config_whole_file_max_tokens: int = 1200
     
     # Embedding settings
-    embedding_model: str = "models/gemini-embedding-001"
-    embedding_dimension: int = 3072  # Gemini embedding-001 dimension
+    embedding_model: str = "BAAI/bge-large-en-v1.5"
+    embedding_dimension: int = 1024  # BGE-large dimension
+    embedding_device: str = "cpu"  # "cpu" or "cuda" for GPU acceleration
+    embedding_normalize: bool = True  # Normalize embeddings for cosine similarity
     
     model_config = SettingsConfigDict(
         env_file=".env",

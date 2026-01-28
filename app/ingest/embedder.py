@@ -1,10 +1,10 @@
-"""Embedding generation using Google Gemini."""
+"""Embedding generation using HuggingFace BGE model."""
 
 import time
 from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
 
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 
 from app.ingest.chunker import Chunk
 from config.settings import settings
@@ -22,19 +22,20 @@ class EmbeddingResult:
 
 class Embedder:
     """
-    Generates embeddings for code chunks using Google Gemini.
+    Generates embeddings for code chunks using HuggingFace BGE model.
     
     Features:
+    - Local embedding generation (no API required)
     - Batch processing for efficiency
     - Retry logic for failures
-    - Rate limit handling
+    - GPU/CPU support
     - Progress tracking
     """
     
     def __init__(
         self,
-        api_key: Optional[str] = None,
         model: Optional[str] = None,
+        device: Optional[str] = None,
         batch_size: int = 100,
         max_retries: int = 3,
         retry_delay: float = 1.0
@@ -43,25 +44,32 @@ class Embedder:
         Initialize the embedder.
         
         Args:
-            api_key: Google API key (uses settings if not provided)
             model: Embedding model name (uses settings if not provided)
+            device: Device for computation - "cpu" or "cuda" (uses settings if not provided)
             batch_size: Number of chunks to process per batch
             max_retries: Maximum retry attempts for failed embeddings
             retry_delay: Delay between retries in seconds
         """
-        self.api_key = api_key or settings.google_api_key
         self.model = model or settings.embedding_model
+        self.device = device or settings.embedding_device
         self.batch_size = batch_size
         self.max_retries = max_retries
         self.retry_delay = retry_delay
         
-        if not self.api_key:
-            raise ValueError("Google API key not found. Set GOOGLE_API_KEY in .env file")
+        print(f"Initializing BGE embeddings model: {self.model}")
+        print(f"Device: {self.device}")
         
-        # Initialize Google Gemini embeddings
-        self.embedding_model = GoogleGenerativeAIEmbeddings(
-            model=self.model,
-            google_api_key=self.api_key
+        # Initialize HuggingFace BGE embeddings
+        model_kwargs = {'device': self.device}
+        encode_kwargs = {
+            'normalize_embeddings': settings.embedding_normalize,
+            'batch_size': batch_size
+        }
+        
+        self.embedding_model = HuggingFaceBgeEmbeddings(
+            model_name=self.model,
+            model_kwargs=model_kwargs,
+            encode_kwargs=encode_kwargs
         )
         
         # Statistics
@@ -70,6 +78,60 @@ class Embedder:
         self.failed_chunks = []
         # Use expected dimension from settings, will validate against actual
         self.expected_dimension = settings.embedding_dimension
+    
+    def embed_text(self, text: str) -> EmbeddingResult:
+        """
+        Generate embedding for a single text string with retry logic.
+        
+        Args:
+            text: Text to embed
+        
+        Returns:
+            EmbeddingResult object
+        """
+        if not text or not text.strip():
+            raise ValueError("Text cannot be empty")
+        
+        # Retry with exponential backoff
+        max_retries = self.max_retries
+        base_delay = self.retry_delay
+        
+        for attempt in range(max_retries):
+            try:
+                # Use embed_documents for consistency (even for single text)
+                embedding_vector = self.embedding_model.embed_documents([text])[0]
+                dimension = len(embedding_vector)
+                
+                # Validate dimension
+                if dimension != self.expected_dimension:
+                    if self.total_embedded == 0:
+                        print(f"  Updating expected dimension from {self.expected_dimension} to {dimension}")
+                        self.expected_dimension = dimension
+                    elif dimension != self.expected_dimension:
+                        raise ValueError(f"Dimension mismatch: expected {self.expected_dimension}, got {dimension}")
+                
+                # Estimate token count (rough approximation: ~4 chars per token)
+                estimated_tokens = len(text) // 4
+                
+                return EmbeddingResult(
+                    chunk_id="text_embed",
+                    embedding=embedding_vector,
+                    token_count=estimated_tokens,
+                    model=self.model,
+                    dimension=dimension
+                )
+            
+            except Exception as e:
+                # For local embeddings, retries are mainly for transient errors
+                if attempt < max_retries - 1:
+                    retry_delay = base_delay * (2 ** attempt)
+                    print(f"  ⚠ Embedding failed. Waiting {retry_delay:.1f}s before retry {attempt + 1}/{max_retries}...")
+                    time.sleep(retry_delay)
+                    continue
+                else:
+                    raise RuntimeError(f"Failed to embed text after {max_retries} retries: {e}")
+        
+        raise RuntimeError(f"Failed to embed text after {max_retries} retries")
     
     def embed_chunks(self, chunks: List[Chunk]) -> List[EmbeddingResult]:
         """
@@ -257,7 +319,7 @@ def main():
     
     # Show statistics
     stats = embedder.get_statistics()
-    print(f"\nEmbedding Statistics:")
+    print("\nEmbedding Statistics:")
     print(f"  Total embedded: {stats['total_embedded']}")
     print(f"  Total tokens: {stats['total_tokens']:,}")
     print(f"  Failed chunks: {stats['failed_chunks']}")
@@ -265,7 +327,7 @@ def main():
     
     # Show sample embedding
     if embeddings:
-        print(f"\nSample Embedding:")
+        print("\nSample Embedding:")
         print(f"  Chunk ID: {embeddings[0].chunk_id}")
         print(f"  Embedding dimensions: {len(embeddings[0].embedding)}")
         print(f"  First 5 values: {embeddings[0].embedding[:5]}")
