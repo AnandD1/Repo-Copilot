@@ -458,6 +458,20 @@ def test_reranker_and_orchestrator(
     print("📊 REVIEW RESULTS")
     print("─" * 80)
     
+    # Debug: Check what evidence was actually gathered
+    print(f"\n🔍 Debug - Evidence counts:")
+    print(f"   Total gathered: {len(response.evidence)}")
+    if response.evidence:
+        from collections import Counter
+        types = Counter(e.evidence_type.value for e in response.evidence)
+        for etype, count in types.items():
+            print(f"   - {etype}: {count}")
+            # Show first evidence of each type
+            for e in response.evidence:
+                if e.evidence_type.value == etype:
+                    print(f"      {e.file_path}:{e.start_line}-{e.end_line} (score: {e.similarity_score:.3f})")
+                    break
+    
     print(f"\n📝 Raw LLM Response:")
     print(response.raw_response)
     

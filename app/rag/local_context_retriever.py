@@ -61,17 +61,18 @@ class LocalContextRetriever:
             return self._cache[cache_key]
         
         # Fetch from GitHub
+        repo_full_name = f"{owner}/{repo}"
         try:
             content = self.pr_fetcher.fetch_file_content(
-                owner=owner,
-                repo=repo,
+                repo_full_name=repo_full_name,
                 file_path=file_path,
                 ref=sha,
             )
             self._cache[cache_key] = content
             return content
-        except Exception:
+        except Exception as e:
             # File doesn't exist at this SHA (new or deleted file)
+            print(f"  Warning: Could not fetch {file_path} at {sha[:8]}: {e}")
             return None
     
     def retrieve(
