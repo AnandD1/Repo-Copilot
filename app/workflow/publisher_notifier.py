@@ -1,22 +1,37 @@
 """Node 6: Publisher + Notifier - Publish review and send notifications."""
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, TYPE_CHECKING
 from datetime import datetime
 
 from .state import WorkflowState, HITLAction
+from config.settings import Settings
+
+if TYPE_CHECKING:
+    from app.notifications import SlackNotifier
 
 
 class PublisherNotifier:
     """Publisher and notification agent."""
     
-    def __init__(self, github_token: Optional[str] = None):
+    def __init__(self, github_token: Optional[str] = None, settings: Optional[Settings] = None):
         """
         Initialize publisher/notifier.
         
         Args:
             github_token: GitHub API token for posting comments
+            settings: Application settings (for Slack config)
         """
         self.github_token = github_token
+        self.settings = settings or Settings()
+        
+        # Initialize Slack notifier if configured (lazy import to avoid circular dependency)
+        self.slack_notifier = None
+        if self.settings.slack_enabled and self.settings.slack_webhook_url:
+            from app.notifications import SlackNotifier
+            self.slack_notifier = SlackNotifier(
+                webhook_url=self.settings.slack_webhook_url,
+                channel=self.settings.slack_channel
+            )
     
     def format_github_comment(self, state: WorkflowState) -> str:
         """
@@ -163,21 +178,43 @@ class PublisherNotifier:
         
         return mock_url
     
-    def send_slack_notification(self, state: WorkflowState) -> bool:
+    def send_slack_notification(self, state: WorkflowState, comment_url: Optional[str] = None) -> bool:
         """
-        Send Slack notification.
+        Send Slack notification with comprehensive PR review summary.
         
         Args:
             state: Workflow state
+            comment_url: URL to the GitHub comment (if posted)
             
         Returns:
             Success status
         """
-        # TODO: Implement Slack integration
-        print("\n📢 Slack notification (not implemented):")
-        print(f"   PR #{state.pr_number} reviewed - {len(state.review_issues)} issues found")
+        if not self.slack_notifier:
+            print("\n📢 Slack notification skipped (not configured)")
+            return False
         
-        return True
+        print("\n📢 Sending Slack notification...")
+        
+        # Build PR URL
+        pr_url = f"https://github.com/{state.repo_owner}/{state.repo_name}/pull/{state.pr_number}"
+        
+        # Build HITL URL (if available)
+        hitl_url = None
+        if hasattr(self.settings, 'hitl_base_url') and self.settings.hitl_base_url:
+            hitl_url = f"{self.settings.hitl_base_url}/review/{state.run_id}"
+        
+        # Send notification
+        success = self.slack_notifier.send_pr_review_notification(
+            state=state,
+            pr_url=pr_url,
+            comment_url=comment_url,
+            hitl_url=hitl_url
+        )
+        
+        if success:
+            print(f"  ✓ Slack notification sent to {self.settings.slack_channel or 'default channel'}")
+        
+        return success
     
     def send_email_notification(self, state: WorkflowState) -> bool:
         """
@@ -212,8 +249,10 @@ class PublisherNotifier:
             comment_url = self.publish_to_github(state)
             print(f"  ✓ Review published: {comment_url}")
             
-            # Send notifications
-            slack_sent = self.send_slack_notification(state)
+            # Send Slack notification with PR details
+            slack_sent = self.send_slack_notification(state, comment_url)
+            
+            # Send email notifications (if configured)
             email_sent = self.send_email_notification(state)
             
             notification_sent = slack_sent or email_sent

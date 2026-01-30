@@ -12,6 +12,7 @@ from .guardrail_agent import GuardrailAgent
 from .hitl_gate import HITLGate
 from .publisher_notifier import PublisherNotifier
 from .persistence_agent import PersistenceAgent
+from config.settings import Settings
 
 
 def should_proceed_to_hitl(state: WorkflowState) -> str:
@@ -52,20 +53,31 @@ def should_publish(state: WorkflowState) -> str:
         return "persistence_reject"
 
 
-def create_review_workflow() -> StateGraph:
+def create_review_workflow(
+    github_token: Optional[str] = None,
+    settings: Optional[Settings] = None
+) -> StateGraph:
     """
     Create the LangGraph workflow for PR review.
+    
+    Args:
+        github_token: GitHub API token for posting comments
+        settings: Application settings (includes Slack config for Phase 6)
     
     Returns:
         Compiled StateGraph
     """
-    # Initialize agents
+    # Load settings if not provided
+    if settings is None:
+        settings = Settings()
+    
+    # Initialize agents (pass settings to publisher for Slack integration)
     retriever = RetrieverAgent()
     reviewer = ReviewerAgent()
     planner = PatchPlannerAgent()
     guardrail = GuardrailAgent()
     hitl = HITLGate()
-    publisher = PublisherNotifier()
+    publisher = PublisherNotifier(github_token=github_token, settings=settings)
     persistence = PersistenceAgent()
     
     # Create workflow graph

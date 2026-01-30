@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     # Legacy Google Gemini API (no longer used, kept for backward compatibility)
     google_api_key: Optional[str] = None
     
+    # Slack Notifications (Phase 6)
+    slack_webhook_url: Optional[str] = None
+    slack_channel: Optional[str] = None
+    slack_enabled: bool = True
+    
     # Qdrant Vector Database
     qdrant_url: str = "http://localhost:6333"  # Qdrant server URL
     qdrant_api_key: Optional[str] = None  # Optional for cloud Qdrant
@@ -112,6 +117,12 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen2.5-coder:7b-instruct"
     ollama_temperature: float = 0.1  # Low temperature for code review
+    
+    # HITL (Human-in-the-Loop) settings
+    hitl_base_url: str = "http://localhost:8000"  # Base URL for HITL web interface
+    
+    # Notification settings (Phase 6)
+    notification_enabled: bool = True
     
     model_config = SettingsConfigDict(
         env_file=".env",

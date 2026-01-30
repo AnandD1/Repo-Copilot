@@ -1,0 +1,59 @@
+{
+  "run_id": "ScratchYOLO_PR2_20260130_181920",
+  "started_at": "2026-01-30T18:19:20.223089",
+  "repo_owner": "AnandD1",
+  "repo_name": "ScratchYOLO",
+  "repo_id": "AnandD1_ScratchYOLO_main",
+  "pr_number": 2,
+  "pr_sha": "ae671b8a7949cc4b718cfa51f363bfdff4ad9576",
+  "diff_hash": "f8a58d060f37",
+  "hunks": [
+    {
+      "hunk_id": "hunk_0",
+      "file_path": "app/streamlit_app.py",
+      "old_start": 65,
+      "new_start": 65,
+      "old_lines": 7,
+      "new_lines": 7,
+      "changes": "File: app/streamlit_app.py\nLines: 65-71\nChanges: +1 -1\n\nRemoved:\n-             border-radius: 14px;\n\nAdded:\n+             border-radius: 18px;"
+    }
+  ],
+  "retrieval_bundles": {
+    "hunk_0": {
+      "hunk_id": "hunk_0",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [],
+  "fix_tasks": [],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "post_summary_only",
+    "edited_content": null,
+    "feedback": "Post summary only",
+    "timestamp": "2026-01-30T18:19:35.519298"
+  },
+  "posted_comment_url": "https://github.com/AnandD1/ScratchYOLO/pull/2#comment-mock",
+  "notification_sent": true,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "publisher",
+  "_metadata": {
+    "saved_at": "2026-01-30T18:19:36.060825",
+    "version": "1.0"
+  }
+}
