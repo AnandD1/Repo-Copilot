@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review {{ repo_full_name }} #{{ pr_number }} | Repo-Copilot</title>
+    <script src="https://cdn.tailwindcss.com/4.0.0-alpha.1"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <div class="mb-8">
+            <a href="/" class="text-blue-600 hover:text-blue-700 font-medium mb-4 inline-block">
+                ← Back to Home
+            </a>
+            <h1 class="text-3xl font-bold text-slate-900">
+                Code Review for {{ repo_full_name }} #{{ pr_number }}
+            </h1>
+            <p class="text-slate-600 mt-2">Run ID: <code class="bg-slate-200 px-2 py-1 rounded">{{ run_id }}</code></p>
+        </div>
+
+        <!-- Status Banner -->
+        <div id="statusBanner" class="mb-6 p-4 rounded-lg"></div>
+
+        <!-- Guardrail Results -->
+        <div id="guardrailSection" class="bg-white rounded-xl shadow-lg p-6 mb-6 hidden">
+            <h2 class="text-xl font-semibold text-slate-800 mb-4">🛡️ Safety Checks</h2>
+            <div id="guardrailContent"></div>
+        </div>
+
+        <!-- Review Issues -->
+        <div id="issuesSection" class="bg-white rounded-xl shadow-lg p-6 mb-6 hidden">
+            <h2 class="text-xl font-semibold text-slate-800 mb-4">📝 Review Issues</h2>
+            <div id="issuesContent"></div>
+        </div>
+
+        <!-- Fix Tasks -->
+        <div id="tasksSection" class="bg-white rounded-xl shadow-lg p-6 mb-6 hidden">
+            <h2 class="text-xl font-semibold text-slate-800 mb-4">🔧 Fix Plan</h2>
+            <div id="tasksContent"></div>
+        </div>
+
+        <!-- HITL Decision Panel -->
+        <div id="hitlPanel" class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-xl p-8 border-2 border-blue-200 hidden">
+            <h2 class="text-2xl font-bold text-slate-900 mb-4">👤 Your Decision Required</h2>
+            <p class="text-slate-600 mb-6">Review the issues and fix plan above, then choose an action:</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button onclick="submitDecision('approve')" class="p-6 bg-green-600 hover:bg-green-700 text-white rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
+                    <div class="text-2xl mb-2">✅</div>
+                    <div class="font-semibold text-lg">Approve</div>
+                    <div class="text-sm opacity-90">Publish full review</div>
+                </button>
+                
+                <button onclick="submitDecision('summary_only')" class="p-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
+                    <div class="text-2xl mb-2">📊</div>
+                    <div class="font-semibold text-lg">Summary Only</div>
+                    <div class="text-sm opacity-90">Post brief summary</div>
+                </button>
+                
+                <button onclick="submitDecision('edit')" class="p-6 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
+                    <div class="text-2xl mb-2">✏️</div>
+                    <div class="font-semibold text-lg">Edit</div>
+                    <div class="text-sm opacity-90">Modify before publishing</div>
+                </button>
+                
+                <button onclick="submitDecision('reject')" class="p-6 bg-red-600 hover:bg-red-700 text-white rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
+                    <div class="text-2xl mb-2">❌</div>
+                    <div class="font-semibold text-lg">Reject</div>
+                    <div class="text-sm opacity-90">Cancel review</div>
+                </button>
+            </div>
+
+            <div class="mt-4">
+                <label for="feedback" class="block text-sm font-medium text-slate-700 mb-2">
+                    Optional Feedback
+                </label>
+                <textarea 
+                    id="feedback"
+                    rows="3"
+                    class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Add any comments or instructions..."
+                ></textarea>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div id="resultsPanel" class="bg-white rounded-xl shadow-lg p-6 hidden">
+            <h2 class="text-xl font-semibold text-slate-800 mb-4">✅ Review Complete</h2>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const runId = "{{ run_id }}";
+        let currentSummary = null;
+
+        const severityColors = {
+            critical: 'bg-red-100 text-red-800 border-red-300',
+            major: 'bg-orange-100 text-orange-800 border-orange-300',
+            minor: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+            info: 'bg-blue-100 text-blue-800 border-blue-300'
+        };
+
+        const severityIcons = {
+            critical: '🔴',
+            major: '🟠',
+            minor: '🟡',
+            info: 'ℹ️'
+        };
+
+        async function loadReviewData() {
+            try {
+                const [statusRes, summaryRes] = await Promise.all([
+                    fetch(`/api/review/${runId}/status`),
+                    fetch(`/api/review/${runId}/summary`)
+                ]);
+
+                const status = await statusRes.json();
+                const summary = await summaryRes.json();
+                currentSummary = summary;
+
+                updateStatus(status);
+                displayGuardrail(summary.guardrail_result);
+                displayIssues(summary.issues);
+                displayTasks(summary.fix_tasks);
+
+                if (status.awaiting_hitl) {
+                    document.getElementById('hitlPanel').classList.remove('hidden');
+                } else if (status.completed) {
+                    displayResults(summary);
+                }
+
+            } catch (error) {
+                console.error('Failed to load review data:', error);
+                showStatus('❌ Failed to load review data', 'error');
+            }
+        }
+
+        function updateStatus(status) {
+            const banner = document.getElementById('statusBanner');
+            if (status.awaiting_hitl) {
+                banner.className = 'mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-800';
+                banner.textContent = '⏸️ Workflow paused - Awaiting your decision';
+            } else if (status.completed) {
+                banner.className = 'mb-6 p-4 rounded-lg bg-green-50 border border-green-200 text-green-800';
+                banner.textContent = '✅ Review completed and published';
+            } else {
+                banner.className = 'mb-6 p-4 rounded-lg bg-gray-50 border border-gray-200 text-gray-800';
+                banner.textContent = `🔄 Status: ${status.status}`;
+            }
+        }
+
+        function displayGuardrail(guardrail) {
+            const section = document.getElementById('guardrailSection');
+            const content = document.getElementById('guardrailContent');
+            
+            section.classList.remove('hidden');
+            
+            if (guardrail.passed) {
+                content.innerHTML = '<div class="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">✅ All safety checks passed</div>';
+            } else {
+                const failed = guardrail.failed_checks.map(check => 
+                    `<li class="text-red-700">❌ ${check}</li>`
+                ).join('');
+                const warnings = guardrail.warnings.map(warn => 
+                    `<li class="text-yellow-700">⚠️ ${warn}</li>`
+                ).join('');
+                
+                content.innerHTML = `
+                    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <ul class="space-y-2">${failed}</ul>
+                    </div>
+                    ${warnings ? `<div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mt-4"><ul class="space-y-2">${warnings}</ul></div>` : ''}
+                `;
+            }
+        }
+
+        function displayIssues(issues) {
+            if (issues.length === 0) {
+                document.getElementById('issuesSection').classList.add('hidden');
+                return;
+            }
+
+            const section = document.getElementById('issuesSection');
+            const content = document.getElementById('issuesContent');
+            
+            section.classList.remove('hidden');
+            
+            const html = issues.map((issue, idx) => `
+                <div class="mb-4 p-4 border-l-4 ${severityColors[issue.severity] || severityColors.info} rounded-lg">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">${severityIcons[issue.severity] || severityIcons.info}</span>
+                            <span class="font-semibold text-sm uppercase">${issue.severity}</span>
+                            <span class="text-slate-600">•</span>
+                            <span class="text-slate-600 text-sm">[${issue.category}]</span>
+                        </div>
+                    </div>
+                    <div class="ml-8">
+                        <p class="font-medium text-slate-800 mb-1">${issue.file_path}:${issue.line_number}</p>
+                        <p class="text-slate-700 mb-2">${issue.description}</p>
+                        ${issue.suggestion ? `<p class="text-sm text-blue-700">💡 ${issue.suggestion}</p>` : ''}
+                        ${issue.evidence_snippet ? `<pre class="mt-2 p-2 bg-slate-100 rounded text-xs overflow-x-auto">${escapeHtml(issue.evidence_snippet)}</pre>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            content.innerHTML = html;
+        }
+
+        function displayTasks(tasks) {
+            if (tasks.length === 0) {
+                document.getElementById('tasksSection').classList.add('hidden');
+                return;
+            }
+
+            const section = document.getElementById('tasksSection');
+            const content = document.getElementById('tasksContent');
+            
+            section.classList.remove('hidden');
+            
+            const effortColors = {
+                small: 'bg-green-100 text-green-800',
+                medium: 'bg-yellow-100 text-yellow-800',
+                large: 'bg-red-100 text-red-800'
+            };
+
+            const html = tasks.map((task, idx) => `
+                <div class="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                    <div class="flex items-start justify-between mb-2">
+                        <h3 class="font-semibold text-slate-900">${idx + 1}. ${task.description}</h3>
+                        <span class="px-3 py-1 rounded-full text-xs font-medium ${effortColors[task.effort_estimate] || effortColors.medium}">
+                            ${task.effort_estimate.toUpperCase()}
+                        </span>
+                    </div>
+                    <p class="text-slate-600 text-sm mb-2">${task.rationale}</p>
+                    <p class="text-slate-700 text-sm mb-2"><strong>Approach:</strong> ${task.suggested_approach}</p>
+                    <p class="text-slate-600 text-xs">
+                        <strong>Files:</strong> ${task.affected_files.join(', ')}
+                    </p>
+                </div>
+            `).join('');
+            
+            content.innerHTML = html;
+        }
+
+        function displayResults(summary) {
+            const panel = document.getElementById('resultsPanel');
+            const content = document.getElementById('resultsContent');
+            
+            panel.classList.remove('hidden');
+            
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-slate-700">
+                        <strong>Issues Found:</strong> ${summary.issues.length}
+                    </p>
+                    <p class="text-slate-700">
+                        <strong>Fix Tasks:</strong> ${summary.fix_tasks.length}
+                    </p>
+                    ${summary.posted_comment_url ? `
+                        <a href="${summary.posted_comment_url}" target="_blank" class="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            View GitHub Comment →
+                        </a>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        async function submitDecision(action) {
+            const feedback = document.getElementById('feedback').value;
+            
+            try {
+                const response = await fetch(`/api/review/${runId}/hitl-decision`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        run_id: runId,
+                        action: action,
+                        feedback: feedback || null
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to submit decision');
+                }
+
+                const result = await response.json();
+                document.getElementById('hitlPanel').classList.add('hidden');
+                showStatus(`✅ Decision submitted: ${action}`, 'success');
+                
+                // Poll for completion
+                setTimeout(() => loadReviewData(), 2000);
+
+            } catch (error) {
+                console.error('Failed to submit decision:', error);
+                showStatus('❌ Failed to submit decision', 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const banner = document.getElementById('statusBanner');
+            banner.className = `mb-6 p-4 rounded-lg ${
+                type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
+                type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' :
+                'bg-blue-50 border border-blue-200 text-blue-800'
+            }`;
+            banner.textContent = message;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Load data on page load
+        loadReviewData();
+    </script>
+</body>
+</html>

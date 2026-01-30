@@ -1,0 +1,98 @@
+{
+  "run_id": "ScratchYOLO_PR2_20260130_121045",
+  "started_at": "2026-01-30T12:10:45.737246",
+  "repo_owner": "AnandD1",
+  "repo_name": "ScratchYOLO",
+  "repo_id": "AnandD1_ScratchYOLO_main",
+  "pr_number": 2,
+  "pr_sha": "ae671b8a7949cc4b718cfa51f363bfdff4ad9576",
+  "diff_hash": "1cf050ec2adc",
+  "hunks": [
+    {
+      "hunk_id": "app/streamlit_app.py:65",
+      "file_path": "app/streamlit_app.py",
+      "old_line_start": 65,
+      "old_line_end": 71,
+      "new_line_start": 65,
+      "new_line_end": 71,
+      "added_lines": [
+        "            border-radius: 18px;"
+      ],
+      "removed_lines": [
+        "            border-radius: 14px;"
+      ],
+      "context_lines": [
+        "        .card {{",
+        "            background: rgba(37, 46, 138, 0.16);",
+        "            border: 1px solid rgba(247, 246, 247, 0.10);",
+        "            padding: 14px;",
+        "        }}",
+        ""
+      ]
+    }
+  ],
+  "retrieval_bundles": {
+    "app/streamlit_app.py:65": {
+      "hunk_id": "app/streamlit_app.py:65",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [
+    {
+      "severity": "minor",
+      "category": "style",
+      "file_path": "app/streamlit_app.py",
+      "line_number": 65,
+      "explanation": "The border-radius value has been increased from 14px to 18px. This change may affect the visual consistency of the card component across different devices and screen sizes.",
+      "suggestion": "Consider maintaining a consistent border-radius value or provide guidance on how this change impacts the design.",
+      "evidence_references": [
+        "app/streamlit_app.py:65-71"
+      ]
+    }
+  ],
+  "fix_tasks": [
+    {
+      "task_id": "task_1",
+      "title": "Review and adjust border-radius values for consistency",
+      "why_it_matters": "Ensures visual consistency across different devices and screen sizes, improving user experience",
+      "affected_files": [
+        "app/streamlit_app.py"
+      ],
+      "suggested_approach": "Evaluate the impact of the increased border-radius value on design. Consider maintaining a consistent value or documenting the change's effects.",
+      "effort_estimate": "M",
+      "related_issues": [
+        0
+      ]
+    }
+  ],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "post_summary_only",
+    "edited_content": null,
+    "feedback": "Post summary only",
+    "timestamp": "2026-01-30T12:13:45.996376"
+  },
+  "posted_comment_url": "https://github.com/AnandD1/ScratchYOLO/pull/2#comment-mock",
+  "notification_sent": true,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "publisher",
+  "_metadata": {
+    "saved_at": "2026-01-30T12:13:46.000362",
+    "version": "1.0"
+  }
+}

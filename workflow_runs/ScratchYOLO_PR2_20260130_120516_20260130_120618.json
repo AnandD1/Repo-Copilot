@@ -1,0 +1,100 @@
+{
+  "run_id": "ScratchYOLO_PR2_20260130_120516",
+  "started_at": "2026-01-30T12:05:16.907226",
+  "repo_owner": "AnandD1",
+  "repo_name": "ScratchYOLO",
+  "repo_id": "AnandD1_ScratchYOLO_main",
+  "pr_number": 2,
+  "pr_sha": "ae671b8a7949cc4b718cfa51f363bfdff4ad9576",
+  "diff_hash": "1cf050ec2adc",
+  "hunks": [
+    {
+      "hunk_id": "app/streamlit_app.py:65",
+      "file_path": "app/streamlit_app.py",
+      "old_line_start": 65,
+      "old_line_end": 71,
+      "new_line_start": 65,
+      "new_line_end": 71,
+      "added_lines": [
+        "            border-radius: 18px;"
+      ],
+      "removed_lines": [
+        "            border-radius: 14px;"
+      ],
+      "context_lines": [
+        "        .card {{",
+        "            background: rgba(37, 46, 138, 0.16);",
+        "            border: 1px solid rgba(247, 246, 247, 0.10);",
+        "            padding: 14px;",
+        "        }}",
+        ""
+      ]
+    }
+  ],
+  "retrieval_bundles": {
+    "app/streamlit_app.py:65": {
+      "hunk_id": "app/streamlit_app.py:65",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [
+    {
+      "severity": "minor",
+      "category": "style",
+      "file_path": "app/streamlit_app.py",
+      "line_number": 65,
+      "explanation": "The border-radius value has been increased from 14px to 18px. This change may affect the visual consistency of the card component across different designs or themes.",
+      "suggestion": "Consider maintaining consistency with other design elements or consult with the design team before making such changes.",
+      "evidence_references": [
+        "app/streamlit_app.py:65-71"
+      ]
+    }
+  ],
+  "fix_tasks": [
+    {
+      "task_id": "task_1",
+      "title": "Review and maintain style consistency for card components",
+      "why_it_matters": "Ensures visual consistency across different designs or themes, improving user experience",
+      "affected_files": [
+        "app/streamlit_app.py"
+      ],
+      "suggested_approach": "Consult with the design team to determine the appropriate border-radius value. Consider maintaining consistency with other design elements.",
+      "effort_estimate": "M",
+      "related_issues": [
+        0
+      ]
+    }
+  ],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "reject",
+    "edited_content": null,
+    "feedback": "Error during HITL: 'str' object has no attribute 'value'",
+    "timestamp": "2026-01-30T12:06:18.941702"
+  },
+  "posted_comment_url": null,
+  "notification_sent": false,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [
+    "HITL gate failed: 'str' object has no attribute 'value'"
+  ],
+  "current_node": "hitl",
+  "_metadata": {
+    "saved_at": "2026-01-30T12:06:18.943711",
+    "version": "1.0"
+  }
+}
