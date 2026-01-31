@@ -1,0 +1,677 @@
+{
+  "timestamp": "2026-01-31T00:29:48.346125",
+  "total_prs": 10,
+  "aggregate_metrics": {
+    "groundedness": 1.0,
+    "precision": 0.1,
+    "usefulness": 1.4,
+    "consistency": 1.0,
+    "latency": 29.41618573665619,
+    "latency_pass_rate": 0.9,
+    "overall_score": 0.54
+  },
+  "per_pr_results": [
+    {
+      "groundedness": {
+        "score": 1.0,
+        "issues_with_evidence": "0/0"
+      },
+      "precision": {
+        "score": 0.0,
+        "valid_comments": "0/0",
+        "nonsense_comments": 0
+      },
+      "usefulness": {
+        "score": 1.0,
+        "ratings": [
+          1
+        ],
+        "average": 1.0
+      },
+      "consistency": {
+        "score": 1.0,
+        "violations": 0,
+        "passed": 1
+      },
+      "latency": {
+        "seconds": 66.7807674407959,
+        "meets_target": false,
+        "target": "< 60s"
+      },
+      "overall_score": 0.4
+    },
+    {
+      "groundedness": {
+        "score": 1.0,
+        "issues_with_evidence": "0/0"
+      },
+      "precision": {
+        "score": 0.0,
+        "valid_comments": "0/0",
+        "nonsense_comments": 0
+      },
+      "usefulness": {
+        "score": 1.0,
+        "ratings": [
+          1
+        ],
+        "average": 1.0
+      },
+      "consistency": {
+        "score": 1.0,
+        "violations": 0,
+        "passed": 1
+      },
+      "latency": {
+        "seconds": 44.03969955444336,
+        "meets_target": true,
+        "target": "< 60s"
+      },
+      "overall_score": 0.5
+    },
+    {
+      "groundedness": {
+        "score": 1.0,
+        "issues_with_evidence": "0/0"
+      },
+      "precision": {
+        "score": 0.0,
+        "valid_comments": "0/0",
+        "nonsense_comments": 0
+      },
+      "usefulness": {
+        "score": 1.0,
+        "ratings": [
+          1
+        ],
+        "average": 1.0
+      },
+      "consistency": {
+        "score": 1.0,
+        "violations": 0,
+        "passed": 1
+      },
+      "latency": {
+        "seconds": 18.658522844314575,
+        "meets_target": true,
+        "target": "< 60s"
+      },
+      "overall_score": 0.5
+    },
+    {
+      "groundedness": {
+        "score": 1.0,
+        "issues_with_evidence": "0/0"
+      },
+      "precision": {
+        "score": 0.0,
+        "valid_comments": "0/0",
+        "nonsense_comments": 0
+      },
+      "usefulness": {
+        "score": 1.0,
+        "ratings": [
+          1
+        ],
+        "average": 1.0
+      },
+      "consistency": {
+        "score": 1.0,
+        "violations": 0,
+        "passed": 1
+      },
+      "latency": {
+        "seconds": 33.05807566642761,
+        "meets_target": true,
+        "target": "< 60s"
+      },
+      "overall_score": 0.5
+    },
+    {
+      "groundedness": {
+        "score": 1.0,
+        "issues_with_evidence": "0/0"
+      },
+      "precision": {
+        "score": 0.0,
+        "valid_comments": "0/0",
+        "nonsense_comments": 0
+      },
+      "usefulness": {
+        "score": 1.0,
+        "ratings": [
+          1
+        ],
+        "average": 1.0
+      },
+      "consistency": {
+        "score": 1.0,
+        "violations": 0,
+        "passed": 1
+      },
+      "latency": {
+        "seconds": 21.749017238616943,
+        "meets_target": true,
+        "target": "< 60s"
+      },
+      "overall_score": 0.5
+    },
+    {
+      "groundedness": {
+        "score": 1.0,
+        "issues_with_evidence": "0/0"
+      },
+      "precision": {
+        "score": 0.0,
+        "valid_comments": "0/0",
+        "nonsense_comments": 0
+      },
+      "usefulness": {
+        "score": 1.0,
+        "ratings": [
+          1
+        ],
+        "average": 1.0
+      },
+      "consistency": {
+        "score": 1.0,
+        "violations": 0,
+        "passed": 1
+      },
+      "latency": {
+        "seconds": 17.84056067466736,
+        "meets_target": true,
+        "target": "< 60s"
+      },
+      "overall_score": 0.5
+    },
+    {
+      "groundedness": {
+        "score": 1.0,
+        "issues_with_evidence": "0/0"
+      },
+      "precision": {
+        "score": 0.0,
+        "valid_comments": "0/0",
+        "nonsense_comments": 0
+      },
+      "usefulness": {
+        "score": 1.0,
+        "ratings": [
+          1
+        ],
+        "average": 1.0
+      },
+      "consistency": {
+        "score": 1.0,
+        "violations": 0,
+        "passed": 1
+      },
+      "latency": {
+        "seconds": 16.225464582443237,
+        "meets_target": true,
+        "target": "< 60s"
+      },
+      "overall_score": 0.5
+    },
+    {
+      "groundedness": {
+        "score": 1.0,
+        "issues_with_evidence": "0/0"
+      },
+      "precision": {
+        "score": 0.0,
+        "valid_comments": "0/0",
+        "nonsense_comments": 0
+      },
+      "usefulness": {
+        "score": 1.0,
+        "ratings": [
+          1
+        ],
+        "average": 1.0
+      },
+      "consistency": {
+        "score": 1.0,
+        "violations": 0,
+        "passed": 1
+      },
+      "latency": {
+        "seconds": 27.285372018814087,
+        "meets_target": true,
+        "target": "< 60s"
+      },
+      "overall_score": 0.5
+    },
+    {
+      "groundedness": {
+        "score": 1.0,
+        "issues_with_evidence": "0/0"
+      },
+      "precision": {
+        "score": 1.0,
+        "valid_comments": "0/0",
+        "nonsense_comments": 0
+      },
+      "usefulness": {
+        "score": 5.0,
+        "ratings": [
+          5
+        ],
+        "average": 5.0
+      },
+      "consistency": {
+        "score": 1.0,
+        "violations": 0,
+        "passed": 1
+      },
+      "latency": {
+        "seconds": 24.37886667251587,
+        "meets_target": true,
+        "target": "< 60s"
+      },
+      "overall_score": 1.0
+    },
+    {
+      "groundedness": {
+        "score": 1.0,
+        "issues_with_evidence": "0/0"
+      },
+      "precision": {
+        "score": 0.0,
+        "valid_comments": "0/0",
+        "nonsense_comments": 0
+      },
+      "usefulness": {
+        "score": 1.0,
+        "ratings": [
+          1
+        ],
+        "average": 1.0
+      },
+      "consistency": {
+        "score": 1.0,
+        "violations": 0,
+        "passed": 1
+      },
+      "latency": {
+        "seconds": 24.14551067352295,
+        "meets_target": true,
+        "target": "< 60s"
+      },
+      "overall_score": 0.5
+    }
+  ],
+  "detailed_results": [
+    {
+      "pr_id": "eval_001",
+      "title": "Add user authentication",
+      "category": "security",
+      "expected_severity": "blocker",
+      "actual_issues": 0,
+      "latency": 66.7807674407959,
+      "metrics": {
+        "groundedness": {
+          "score": 1.0,
+          "issues_with_evidence": "0/0"
+        },
+        "precision": {
+          "score": 0.0,
+          "valid_comments": "0/0",
+          "nonsense_comments": 0
+        },
+        "usefulness": {
+          "score": 1.0,
+          "ratings": [
+            1
+          ],
+          "average": 1.0
+        },
+        "consistency": {
+          "score": 1.0,
+          "violations": 0,
+          "passed": 1
+        },
+        "latency": {
+          "seconds": 66.7807674407959,
+          "meets_target": false,
+          "target": "< 60s"
+        },
+        "overall_score": 0.4
+      }
+    },
+    {
+      "pr_id": "eval_002",
+      "title": "Add file upload feature",
+      "category": "correctness",
+      "expected_severity": "major",
+      "actual_issues": 0,
+      "latency": 44.03969955444336,
+      "metrics": {
+        "groundedness": {
+          "score": 1.0,
+          "issues_with_evidence": "0/0"
+        },
+        "precision": {
+          "score": 0.0,
+          "valid_comments": "0/0",
+          "nonsense_comments": 0
+        },
+        "usefulness": {
+          "score": 1.0,
+          "ratings": [
+            1
+          ],
+          "average": 1.0
+        },
+        "consistency": {
+          "score": 1.0,
+          "violations": 0,
+          "passed": 1
+        },
+        "latency": {
+          "seconds": 44.03969955444336,
+          "meets_target": true,
+          "target": "< 60s"
+        },
+        "overall_score": 0.5
+      }
+    },
+    {
+      "pr_id": "eval_003",
+      "title": "Display user posts",
+      "category": "performance",
+      "expected_severity": "major",
+      "actual_issues": 0,
+      "latency": 18.658522844314575,
+      "metrics": {
+        "groundedness": {
+          "score": 1.0,
+          "issues_with_evidence": "0/0"
+        },
+        "precision": {
+          "score": 0.0,
+          "valid_comments": "0/0",
+          "nonsense_comments": 0
+        },
+        "usefulness": {
+          "score": 1.0,
+          "ratings": [
+            1
+          ],
+          "average": 1.0
+        },
+        "consistency": {
+          "score": 1.0,
+          "violations": 0,
+          "passed": 1
+        },
+        "latency": {
+          "seconds": 18.658522844314575,
+          "meets_target": true,
+          "target": "< 60s"
+        },
+        "overall_score": 0.5
+      }
+    },
+    {
+      "pr_id": "eval_004",
+      "title": "Add utility functions",
+      "category": "style",
+      "expected_severity": "minor",
+      "actual_issues": 0,
+      "latency": 33.05807566642761,
+      "metrics": {
+        "groundedness": {
+          "score": 1.0,
+          "issues_with_evidence": "0/0"
+        },
+        "precision": {
+          "score": 0.0,
+          "valid_comments": "0/0",
+          "nonsense_comments": 0
+        },
+        "usefulness": {
+          "score": 1.0,
+          "ratings": [
+            1
+          ],
+          "average": 1.0
+        },
+        "consistency": {
+          "score": 1.0,
+          "violations": 0,
+          "passed": 1
+        },
+        "latency": {
+          "seconds": 33.05807566642761,
+          "meets_target": true,
+          "target": "< 60s"
+        },
+        "overall_score": 0.5
+      }
+    },
+    {
+      "pr_id": "eval_005",
+      "title": "Add payment processing",
+      "category": "test",
+      "expected_severity": "major",
+      "actual_issues": 0,
+      "latency": 21.749017238616943,
+      "metrics": {
+        "groundedness": {
+          "score": 1.0,
+          "issues_with_evidence": "0/0"
+        },
+        "precision": {
+          "score": 0.0,
+          "valid_comments": "0/0",
+          "nonsense_comments": 0
+        },
+        "usefulness": {
+          "score": 1.0,
+          "ratings": [
+            1
+          ],
+          "average": 1.0
+        },
+        "consistency": {
+          "score": 1.0,
+          "violations": 0,
+          "passed": 1
+        },
+        "latency": {
+          "seconds": 21.749017238616943,
+          "meets_target": true,
+          "target": "< 60s"
+        },
+        "overall_score": 0.5
+      }
+    },
+    {
+      "pr_id": "eval_006",
+      "title": "Add database connection",
+      "category": "security",
+      "expected_severity": "blocker",
+      "actual_issues": 0,
+      "latency": 17.84056067466736,
+      "metrics": {
+        "groundedness": {
+          "score": 1.0,
+          "issues_with_evidence": "0/0"
+        },
+        "precision": {
+          "score": 0.0,
+          "valid_comments": "0/0",
+          "nonsense_comments": 0
+        },
+        "usefulness": {
+          "score": 1.0,
+          "ratings": [
+            1
+          ],
+          "average": 1.0
+        },
+        "consistency": {
+          "score": 1.0,
+          "violations": 0,
+          "passed": 1
+        },
+        "latency": {
+          "seconds": 17.84056067466736,
+          "meets_target": true,
+          "target": "< 60s"
+        },
+        "overall_score": 0.5
+      }
+    },
+    {
+      "pr_id": "eval_007",
+      "title": "Add caching layer",
+      "category": "performance",
+      "expected_severity": "major",
+      "actual_issues": 0,
+      "latency": 16.225464582443237,
+      "metrics": {
+        "groundedness": {
+          "score": 1.0,
+          "issues_with_evidence": "0/0"
+        },
+        "precision": {
+          "score": 0.0,
+          "valid_comments": "0/0",
+          "nonsense_comments": 0
+        },
+        "usefulness": {
+          "score": 1.0,
+          "ratings": [
+            1
+          ],
+          "average": 1.0
+        },
+        "consistency": {
+          "score": 1.0,
+          "violations": 0,
+          "passed": 1
+        },
+        "latency": {
+          "seconds": 16.225464582443237,
+          "meets_target": true,
+          "target": "< 60s"
+        },
+        "overall_score": 0.5
+      }
+    },
+    {
+      "pr_id": "eval_008",
+      "title": "Add user registration",
+      "category": "security",
+      "expected_severity": "major",
+      "actual_issues": 0,
+      "latency": 27.285372018814087,
+      "metrics": {
+        "groundedness": {
+          "score": 1.0,
+          "issues_with_evidence": "0/0"
+        },
+        "precision": {
+          "score": 0.0,
+          "valid_comments": "0/0",
+          "nonsense_comments": 0
+        },
+        "usefulness": {
+          "score": 1.0,
+          "ratings": [
+            1
+          ],
+          "average": 1.0
+        },
+        "consistency": {
+          "score": 1.0,
+          "violations": 0,
+          "passed": 1
+        },
+        "latency": {
+          "seconds": 27.285372018814087,
+          "meets_target": true,
+          "target": "< 60s"
+        },
+        "overall_score": 0.5
+      }
+    },
+    {
+      "pr_id": "eval_009",
+      "title": "Add logging utility",
+      "category": "clean",
+      "expected_severity": "none",
+      "actual_issues": 0,
+      "latency": 24.37886667251587,
+      "metrics": {
+        "groundedness": {
+          "score": 1.0,
+          "issues_with_evidence": "0/0"
+        },
+        "precision": {
+          "score": 1.0,
+          "valid_comments": "0/0",
+          "nonsense_comments": 0
+        },
+        "usefulness": {
+          "score": 5.0,
+          "ratings": [
+            5
+          ],
+          "average": 5.0
+        },
+        "consistency": {
+          "score": 1.0,
+          "violations": 0,
+          "passed": 1
+        },
+        "latency": {
+          "seconds": 24.37886667251587,
+          "meets_target": true,
+          "target": "< 60s"
+        },
+        "overall_score": 1.0
+      }
+    },
+    {
+      "pr_id": "eval_010",
+      "title": "Add data export function",
+      "category": "docs",
+      "expected_severity": "minor",
+      "actual_issues": 0,
+      "latency": 24.14551067352295,
+      "metrics": {
+        "groundedness": {
+          "score": 1.0,
+          "issues_with_evidence": "0/0"
+        },
+        "precision": {
+          "score": 0.0,
+          "valid_comments": "0/0",
+          "nonsense_comments": 0
+        },
+        "usefulness": {
+          "score": 1.0,
+          "ratings": [
+            1
+          ],
+          "average": 1.0
+        },
+        "consistency": {
+          "score": 1.0,
+          "violations": 0,
+          "passed": 1
+        },
+        "latency": {
+          "seconds": 24.14551067352295,
+          "meets_target": true,
+          "target": "< 60s"
+        },
+        "overall_score": 0.5
+      }
+    }
+  ]
+}

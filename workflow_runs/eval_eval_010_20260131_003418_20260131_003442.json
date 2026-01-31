@@ -1,0 +1,59 @@
+{
+  "run_id": "eval_eval_010_20260131_003418",
+  "started_at": "2026-01-31T00:34:18.416057",
+  "repo_owner": "Evaluation",
+  "repo_name": "SyntheticPR",
+  "repo_id": "Evaluation_SyntheticPR_main",
+  "pr_number": 10,
+  "pr_sha": "synthetic",
+  "diff_hash": "6d570aa9654c",
+  "hunks": [
+    {
+      "hunk_id": "hunk_eval_010",
+      "file_path": "src/export/csv_export.py",
+      "old_start": 1,
+      "new_start": 1,
+      "old_lines": 1,
+      "new_lines": 4,
+      "changes": "--- src/export/csv_export.py\n+++ src/export/csv_export.py\n+ def export_to_csv(data, filename):\n+     with open(filename, 'w') as f:\n+         for row in data:\n+             f.write(','.join(map(str, row)) + '\\n')"
+    }
+  ],
+  "retrieval_bundles": {
+    "hunk_eval_010": {
+      "hunk_id": "hunk_eval_010",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [],
+  "fix_tasks": [],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "post_summary_only",
+    "edited_content": null,
+    "feedback": "Post summary only",
+    "timestamp": "2026-01-31T00:34:42.554596"
+  },
+  "posted_comment_url": "https://github.com/Evaluation/SyntheticPR/pull/10#comment-mock",
+  "notification_sent": true,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "publisher",
+  "_metadata": {
+    "saved_at": "2026-01-31T00:34:42.558946",
+    "version": "1.0"
+  }
+}

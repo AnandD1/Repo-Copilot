@@ -1,0 +1,59 @@
+{
+  "run_id": "eval_eval_001_20260131_002948",
+  "started_at": "2026-01-31T00:29:48.346125",
+  "repo_owner": "Evaluation",
+  "repo_name": "SyntheticPR",
+  "repo_id": "Evaluation_SyntheticPR_main",
+  "pr_number": 1,
+  "pr_sha": "synthetic",
+  "diff_hash": "1c502da3215e",
+  "hunks": [
+    {
+      "hunk_id": "hunk_eval_001",
+      "file_path": "src/auth/login.py",
+      "old_start": 1,
+      "new_start": 1,
+      "old_lines": 2,
+      "new_lines": 4,
+      "changes": "--- src/auth/login.py\n+++ src/auth/login.py\n- def login(username, password):\n-     return True\n+ def login(username, password):\n+     query = f\"SELECT * FROM users WHERE username='{username}' AND password='{password}'\"\n+     result = db.execute(query)\n+     return result is not None"
+    }
+  ],
+  "retrieval_bundles": {
+    "hunk_eval_001": {
+      "hunk_id": "hunk_eval_001",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [],
+  "fix_tasks": [],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "approve",
+    "edited_content": null,
+    "feedback": "Approved for publishing",
+    "timestamp": "2026-01-31T00:30:55.118283"
+  },
+  "posted_comment_url": "https://github.com/Evaluation/SyntheticPR/pull/1#comment-mock",
+  "notification_sent": true,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "publisher",
+  "_metadata": {
+    "saved_at": "2026-01-31T00:30:55.123307",
+    "version": "1.0"
+  }
+}

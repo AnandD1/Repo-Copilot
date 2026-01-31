@@ -1,0 +1,59 @@
+{
+  "run_id": "eval_eval_004_20260131_003157",
+  "started_at": "2026-01-31T00:31:57.839982",
+  "repo_owner": "Evaluation",
+  "repo_name": "SyntheticPR",
+  "repo_id": "Evaluation_SyntheticPR_main",
+  "pr_number": 4,
+  "pr_sha": "synthetic",
+  "diff_hash": "69a1e1de88c4",
+  "hunks": [
+    {
+      "hunk_id": "hunk_eval_004",
+      "file_path": "src/utils/helpers.py",
+      "old_start": 1,
+      "new_start": 1,
+      "old_lines": 1,
+      "new_lines": 5,
+      "changes": "--- src/utils/helpers.py\n+++ src/utils/helpers.py\n+ def ProcessData(InputData):\n+     result=[]\n+     for x in InputData:\n+         result.append(x*2)\n+     return result"
+    }
+  ],
+  "retrieval_bundles": {
+    "hunk_eval_004": {
+      "hunk_id": "hunk_eval_004",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [],
+  "fix_tasks": [],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "post_summary_only",
+    "edited_content": null,
+    "feedback": "Post summary only",
+    "timestamp": "2026-01-31T00:32:30.889695"
+  },
+  "posted_comment_url": "https://github.com/Evaluation/SyntheticPR/pull/4#comment-mock",
+  "notification_sent": true,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "publisher",
+  "_metadata": {
+    "saved_at": "2026-01-31T00:32:30.894439",
+    "version": "1.0"
+  }
+}

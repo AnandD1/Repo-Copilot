@@ -1,0 +1,59 @@
+{
+  "run_id": "eval_eval_007_20260131_003310",
+  "started_at": "2026-01-31T00:33:10.509397",
+  "repo_owner": "Evaluation",
+  "repo_name": "SyntheticPR",
+  "repo_id": "Evaluation_SyntheticPR_main",
+  "pr_number": 7,
+  "pr_sha": "synthetic",
+  "diff_hash": "0ca7e5b187e4",
+  "hunks": [
+    {
+      "hunk_id": "hunk_eval_007",
+      "file_path": "src/cache/session_cache.py",
+      "old_start": 1,
+      "new_start": 1,
+      "old_lines": 1,
+      "new_lines": 7,
+      "changes": "--- src/cache/session_cache.py\n+++ src/cache/session_cache.py\n+ cache = {}\n+ def store_session(user_id, data):\n+     cache[user_id] = data\n+ def get_session(user_id):\n+     return cache.get(user_id)"
+    }
+  ],
+  "retrieval_bundles": {
+    "hunk_eval_007": {
+      "hunk_id": "hunk_eval_007",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [],
+  "fix_tasks": [],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "post_summary_only",
+    "edited_content": null,
+    "feedback": "Post summary only",
+    "timestamp": "2026-01-31T00:33:26.725261"
+  },
+  "posted_comment_url": "https://github.com/Evaluation/SyntheticPR/pull/7#comment-mock",
+  "notification_sent": true,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "publisher",
+  "_metadata": {
+    "saved_at": "2026-01-31T00:33:26.728770",
+    "version": "1.0"
+  }
+}

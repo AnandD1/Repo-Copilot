@@ -1,0 +1,59 @@
+{
+  "run_id": "eval_eval_009_20260131_003354",
+  "started_at": "2026-01-31T00:33:54.031167",
+  "repo_owner": "Evaluation",
+  "repo_name": "SyntheticPR",
+  "repo_id": "Evaluation_SyntheticPR_main",
+  "pr_number": 9,
+  "pr_sha": "synthetic",
+  "diff_hash": "6719e07788c7",
+  "hunks": [
+    {
+      "hunk_id": "hunk_eval_009",
+      "file_path": "src/utils/logger.py",
+      "old_start": 1,
+      "new_start": 1,
+      "old_lines": 1,
+      "new_lines": 7,
+      "changes": "--- src/utils/logger.py\n+++ src/utils/logger.py\n+ import logging\n+ def get_logger(name: str) -> logging.Logger:\n+     \"\"\"Get a configured logger instance.\"\"\"\n+     logger = logging.getLogger(name)\n+     logger.setLevel(logging.INFO)\n+     return logger"
+    }
+  ],
+  "retrieval_bundles": {
+    "hunk_eval_009": {
+      "hunk_id": "hunk_eval_009",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [],
+  "fix_tasks": [],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "post_summary_only",
+    "edited_content": null,
+    "feedback": "Post summary only",
+    "timestamp": "2026-01-31T00:34:18.401183"
+  },
+  "posted_comment_url": "https://github.com/Evaluation/SyntheticPR/pull/9#comment-mock",
+  "notification_sent": true,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "publisher",
+  "_metadata": {
+    "saved_at": "2026-01-31T00:34:18.406158",
+    "version": "1.0"
+  }
+}

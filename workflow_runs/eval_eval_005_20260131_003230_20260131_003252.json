@@ -1,0 +1,59 @@
+{
+  "run_id": "eval_eval_005_20260131_003230",
+  "started_at": "2026-01-31T00:32:30.902103",
+  "repo_owner": "Evaluation",
+  "repo_name": "SyntheticPR",
+  "repo_id": "Evaluation_SyntheticPR_main",
+  "pr_number": 5,
+  "pr_sha": "synthetic",
+  "diff_hash": "c5e4eaa08092",
+  "hunks": [
+    {
+      "hunk_id": "hunk_eval_005",
+      "file_path": "src/payments/processor.py",
+      "old_start": 1,
+      "new_start": 1,
+      "old_lines": 1,
+      "new_lines": 5,
+      "changes": "--- src/payments/processor.py\n+++ src/payments/processor.py\n+ def process_payment(amount, card_number):\n+     response = gateway.charge(amount, card_number)\n+     if response.success:\n+         return {'status': 'charged'}\n+     return {'status': 'failed'}"
+    }
+  ],
+  "retrieval_bundles": {
+    "hunk_eval_005": {
+      "hunk_id": "hunk_eval_005",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [],
+  "fix_tasks": [],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "post_summary_only",
+    "edited_content": null,
+    "feedback": "Post summary only",
+    "timestamp": "2026-01-31T00:32:52.641361"
+  },
+  "posted_comment_url": "https://github.com/Evaluation/SyntheticPR/pull/5#comment-mock",
+  "notification_sent": true,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "publisher",
+  "_metadata": {
+    "saved_at": "2026-01-31T00:32:52.646243",
+    "version": "1.0"
+  }
+}

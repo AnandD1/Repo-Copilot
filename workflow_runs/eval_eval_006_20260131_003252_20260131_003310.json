@@ -1,0 +1,59 @@
+{
+  "run_id": "eval_eval_006_20260131_003252",
+  "started_at": "2026-01-31T00:32:52.659798",
+  "repo_owner": "Evaluation",
+  "repo_name": "SyntheticPR",
+  "repo_id": "Evaluation_SyntheticPR_main",
+  "pr_number": 6,
+  "pr_sha": "synthetic",
+  "diff_hash": "ba91bab4ccc5",
+  "hunks": [
+    {
+      "hunk_id": "hunk_eval_006",
+      "file_path": "src/db/connection.py",
+      "old_start": 1,
+      "new_start": 1,
+      "old_lines": 1,
+      "new_lines": 6,
+      "changes": "--- src/db/connection.py\n+++ src/db/connection.py\n+ DB_HOST = 'prod-db.example.com'\n+ DB_USER = 'admin'\n+ DB_PASS = 'SuperSecret123!'\n+ def connect():\n+     return psycopg2.connect(host=DB_HOST, user=DB_USER, password=DB_PASS)"
+    }
+  ],
+  "retrieval_bundles": {
+    "hunk_eval_006": {
+      "hunk_id": "hunk_eval_006",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [],
+  "fix_tasks": [],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "reject",
+    "edited_content": null,
+    "feedback": "no",
+    "timestamp": "2026-01-31T00:33:10.491320"
+  },
+  "posted_comment_url": null,
+  "notification_sent": false,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "hitl",
+  "_metadata": {
+    "saved_at": "2026-01-31T00:33:10.493840",
+    "version": "1.0"
+  }
+}

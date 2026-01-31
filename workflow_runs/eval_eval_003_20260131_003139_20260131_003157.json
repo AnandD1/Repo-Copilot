@@ -1,0 +1,59 @@
+{
+  "run_id": "eval_eval_003_20260131_003139",
+  "started_at": "2026-01-31T00:31:39.176462",
+  "repo_owner": "Evaluation",
+  "repo_name": "SyntheticPR",
+  "repo_id": "Evaluation_SyntheticPR_main",
+  "pr_number": 3,
+  "pr_sha": "synthetic",
+  "diff_hash": "347cbe6a6ad7",
+  "hunks": [
+    {
+      "hunk_id": "hunk_eval_003",
+      "file_path": "src/views/profile.py",
+      "old_start": 1,
+      "new_start": 1,
+      "old_lines": 3,
+      "new_lines": 7,
+      "changes": "--- src/views/profile.py\n+++ src/views/profile.py\n- def get_user_profile(user_id):\n-     user = User.query.get(user_id)\n-     return user\n+ def get_user_profile(user_id):\n+     user = User.query.get(user_id)\n+     posts = []\n+     for post_id in user.post_ids:\n+         post = Post.query.get(post_id)\n+         posts.append(post)\n+     return {'user': user, 'posts': posts}"
+    }
+  ],
+  "retrieval_bundles": {
+    "hunk_eval_003": {
+      "hunk_id": "hunk_eval_003",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [],
+  "fix_tasks": [],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "reject",
+    "edited_content": null,
+    "feedback": "Just No",
+    "timestamp": "2026-01-31T00:31:57.827887"
+  },
+  "posted_comment_url": null,
+  "notification_sent": false,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "hitl",
+  "_metadata": {
+    "saved_at": "2026-01-31T00:31:57.829467",
+    "version": "1.0"
+  }
+}

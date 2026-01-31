@@ -1,0 +1,59 @@
+{
+  "run_id": "eval_eval_008_20260131_003326",
+  "started_at": "2026-01-31T00:33:26.740458",
+  "repo_owner": "Evaluation",
+  "repo_name": "SyntheticPR",
+  "repo_id": "Evaluation_SyntheticPR_main",
+  "pr_number": 8,
+  "pr_sha": "synthetic",
+  "diff_hash": "ae478fac1630",
+  "hunks": [
+    {
+      "hunk_id": "hunk_eval_008",
+      "file_path": "src/api/register.py",
+      "old_start": 1,
+      "new_start": 1,
+      "old_lines": 1,
+      "new_lines": 4,
+      "changes": "--- src/api/register.py\n+++ src/api/register.py\n+ def register_user(email, password):\n+     user = User(email=email, password=password)\n+     user.save()\n+     return {'user_id': user.id}"
+    }
+  ],
+  "retrieval_bundles": {
+    "hunk_eval_008": {
+      "hunk_id": "hunk_eval_008",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [],
+  "fix_tasks": [],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "edit",
+    "edited_content": "hi",
+    "feedback": "User requested edits",
+    "timestamp": "2026-01-31T00:33:54.017569"
+  },
+  "posted_comment_url": "https://github.com/Evaluation/SyntheticPR/pull/8#comment-mock",
+  "notification_sent": true,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "publisher",
+  "_metadata": {
+    "saved_at": "2026-01-31T00:33:54.022257",
+    "version": "1.0"
+  }
+}
