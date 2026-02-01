@@ -1,0 +1,98 @@
+{
+  "run_id": "14f2d520-d048-490a-a3d1-65ea45c01b58",
+  "started_at": "2026-01-31T16:47:26.750317",
+  "repo_owner": "AnandD1",
+  "repo_name": "ScratchYOLO",
+  "repo_id": "AnandD1/ScratchYOLO",
+  "pr_number": 2,
+  "pr_sha": "ae671b8a7949cc4b718cfa51f363bfdff4ad9576",
+  "diff_hash": "1cf050ec2adcedaf00a0a66a50b18c9a",
+  "hunks": [
+    {
+      "hunk_id": "app/streamlit_app.py:65",
+      "file_path": "app/streamlit_app.py",
+      "old_line_start": 65,
+      "old_line_end": 71,
+      "new_line_start": 65,
+      "new_line_end": 71,
+      "added_lines": [
+        "            border-radius: 18px;"
+      ],
+      "removed_lines": [
+        "            border-radius: 14px;"
+      ],
+      "context_lines": [
+        "        .card {{",
+        "            background: rgba(37, 46, 138, 0.16);",
+        "            border: 1px solid rgba(247, 246, 247, 0.10);",
+        "            padding: 14px;",
+        "        }}",
+        ""
+      ]
+    }
+  ],
+  "retrieval_bundles": {
+    "app/streamlit_app.py:65": {
+      "hunk_id": "app/streamlit_app.py:65",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [
+    {
+      "severity": "minor",
+      "category": "style",
+      "file_path": "app/streamlit_app.py",
+      "line_number": 65,
+      "explanation": "The border-radius value has been increased from 14px to 18px. This change may affect the visual appearance of the card component.",
+      "suggestion": "Consider if this change is necessary and if it aligns with the design guidelines. If not, revert the change to maintain consistency.",
+      "evidence_references": [
+        "app/streamlit_app.py:65-71"
+      ]
+    }
+  ],
+  "fix_tasks": [
+    {
+      "task_id": "task_1",
+      "title": "Revert style changes in card component",
+      "why_it_matters": "Maintains visual consistency and adheres to design guidelines",
+      "affected_files": [
+        "app/streamlit_app.py"
+      ],
+      "suggested_approach": "Revert the border-radius change from 18px to 14px",
+      "effort_estimate": "S",
+      "related_issues": [
+        0
+      ]
+    }
+  ],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "post_summary_only",
+    "edited_content": null,
+    "feedback": "Post summary only",
+    "timestamp": "2026-01-31T16:48:30.076989"
+  },
+  "posted_comment_url": "https://github.com/AnandD1/ScratchYOLO/pull/2#comment-mock",
+  "notification_sent": true,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "publisher",
+  "_metadata": {
+    "saved_at": "2026-01-31T16:48:30.606732",
+    "version": "1.0"
+  }
+}

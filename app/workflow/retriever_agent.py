@@ -20,7 +20,7 @@ class RetrieverAgent:
             self.embedder = Embedder()
         except Exception as e:
             print(f"  ⚠ Vector store not available: {e}")
-            print(f"  ⚠ Retriever will return empty contexts")
+            print("  ⚠ Retriever will return empty contexts")
     
     def retrieve_for_hunk(
         self,

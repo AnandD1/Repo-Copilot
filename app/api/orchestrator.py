@@ -2,7 +2,7 @@
 
 import time
 import hashlib
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime
 
 from config.settings import Settings
@@ -10,7 +10,6 @@ from app.api.cleanup import CleanupManager
 from app.ingest import quick_ingest_repo
 from app.workflow import WorkflowState, create_review_workflow, run_workflow
 from app.pr_review import PRFetcher, DiffParser, PRReviewCoordinator
-from app.evaluation import Evaluator
 
 
 class WorkflowOrchestrator:
@@ -21,6 +20,7 @@ class WorkflowOrchestrator:
         self.cleanup_manager = CleanupManager(self.settings)
         self.current_repo_id: Optional[str] = None
         self.ingested_repos: Dict[str, Dict[str, Any]] = {}  # Track ingested repos
+        self.active_workflows: Dict[str, Any] = {}  # Track running workflows
     
     def parse_github_url(self, url: str) -> tuple[str, str]:
         """
@@ -192,8 +192,9 @@ class WorkflowOrchestrator:
                 print("\n📊 PHASE 7: EVALUATION")
                 print("-" * 80)
                 
-                evaluator = Evaluator(settings=self.settings)
-                # Get evaluation metrics (simplified for now)
+                # Evaluator would be used here for actual evaluation
+                # For now, return placeholder results
+                # evaluator = Evaluator(settings=self.settings)
                 evaluation_results = {
                     'groundedness': 'N/A - Requires manual evaluation',
                     'precision': 'N/A - Requires manual evaluation',
@@ -337,6 +338,7 @@ class WorkflowOrchestrator:
             
             return {
                 'success': True,
+                'repo_url': repo_url,
                 'repo_owner': repo_owner,
                 'repo_name': repo_name,
                 'repo_id': repo_id,
@@ -408,7 +410,7 @@ class WorkflowOrchestrator:
         progress.append({
             'step': 'ingestion',
             'status': 'in_progress',
-            'message': f'Cloning and embedding repository...',
+            'message': 'Cloning and embedding repository...',
             'timestamp': datetime.now().isoformat()
         })
         
@@ -444,6 +446,7 @@ class WorkflowOrchestrator:
             
             return {
                 'success': True,
+                'repo_url': repo_url,
                 'repo_owner': repo_owner,
                 'repo_name': repo_name,
                 'repo_id': repo_id,
@@ -479,155 +482,464 @@ class WorkflowOrchestrator:
         pr_number: int,
         github_token: Optional[str] = None
     ) -> Dict[str, Any]:
-        """
-        Step 2: Fetch and parse PR only.
-        
-        Returns detailed progress for PR fetching and parsing.
-        """
-        import time
-        
-        start_time = time.time()
-        progress = []
-        
-        # Step 1: Parse URL
-        progress.append({
-            'step': 'parse_url',
-            'status': 'in_progress',
-            'message': 'Parsing GitHub URL...',
-            'timestamp': datetime.now().isoformat()
-        })
+        """Run Phase 2: PR Fetch and Parse only."""
+        steps = []
         
         try:
-            repo_owner, repo_name = self.parse_github_url(repo_url)
-            repo_full_name = f"{repo_owner}/{repo_name}"
+            # Step 1: Parse URL
+            steps.append({"step": "parse_url", "status": "in_progress", "message": "Parsing repository URL"})
+            try:
+                owner, name = self.parse_github_url(repo_url)
+                repo_id = f"{owner}/{name}"
+                steps[-1]["status"] = "success"
+                steps[-1]["message"] = f"✓ Parsed: {repo_id}"
+            except Exception as e:
+                steps[-1]["status"] = "error"
+                steps[-1]["message"] = f"✗ Failed to parse URL: {str(e)}"
+                return {"success": False, "steps": steps, "error": str(e)}
             
-            progress.append({
-                'step': 'parse_url',
-                'status': 'success',
-                'message': f'Repository: {repo_owner}/{repo_name}',
-                'data': {
-                    'repo_owner': repo_owner,
-                    'repo_name': repo_name,
-                    'repo_full_name': repo_full_name
-                },
-                'timestamp': datetime.now().isoformat()
-            })
+            # Step 2: Validate token
+            steps.append({"step": "validate_token", "status": "in_progress", "message": "Validating GitHub token"})
+            token = github_token or self.settings.github_token
+            if not token:
+                steps[-1]["status"] = "error"
+                steps[-1]["message"] = "✗ GitHub token required"
+                return {"success": False, "steps": steps, "error": "GitHub token required"}
+            steps[-1]["status"] = "success"
+            steps[-1]["message"] = "✓ Token validated"
             
-        except ValueError as e:
-            progress.append({
-                'step': 'parse_url',
-                'status': 'error',
-                'message': str(e),
-                'timestamp': datetime.now().isoformat()
-            })
+            # Step 3: Fetch PR and build review units
+            steps.append({"step": "fetch_pr", "status": "in_progress", "message": f"Fetching PR #{pr_number}"})
+            try:
+                coordinator = PRReviewCoordinator(github_token=token)
+                
+                # Use prepare_pr_review which returns a PRReviewSession
+                session = coordinator.prepare_pr_review(
+                    repo_full_name=f"{owner}/{name}",
+                    pr_number=pr_number,
+                    strategy="per_hunk"
+                )
+                
+                # Extract data from session
+                pr_data_obj = session.pr_data
+                pr_data = {
+                    "number": pr_data_obj.number,
+                    "title": pr_data_obj.title,
+                    "description": pr_data_obj.description,
+                    "state": pr_data_obj.state,
+                    "author": pr_data_obj.author,
+                    "created_at": pr_data_obj.created_at.isoformat() if pr_data_obj.created_at else None,
+                    "updated_at": pr_data_obj.updated_at.isoformat() if pr_data_obj.updated_at else None,
+                    "head": {"sha": pr_data_obj.head_sha},
+                    "base": {"sha": pr_data_obj.base_sha},
+                    "additions": pr_data_obj.additions,
+                    "deletions": pr_data_obj.deletions,
+                    "changed_files": pr_data_obj.changed_files_count
+                }
+                
+                # Convert review units to dict format
+                review_units = []
+                for unit in session.review_units:
+                    review_units.append({
+                        "hunk_id": f"{unit.context.file_path}:{unit.context.new_line_start or 0}",
+                        "file_path": unit.context.file_path,
+                        "old_line_start": unit.context.old_line_start or 0,
+                        "old_line_end": unit.context.old_line_end or 0,
+                        "new_line_start": unit.context.new_line_start or 0,
+                        "new_line_end": unit.context.new_line_end or 0,
+                        "added_lines": unit.context.added_lines,
+                        "removed_lines": unit.context.removed_lines,
+                        "context_lines": unit.context.context_lines
+                    })
+                
+                coordinator.close()
+                
+                steps[-1]["status"] = "success"
+                steps[-1]["message"] = f"✓ Fetched PR: {pr_data.get('title', 'Unknown')}"
+                
+                # Add metrics step
+                steps.append({
+                    "step": "metrics",
+                    "status": "success",
+                    "message": f"✓ Created {len(review_units)} review units"
+                })
+                
+                return {
+                    "success": True,
+                    "steps": steps,
+                    "pr_data": pr_data,
+                    "review_units": review_units,
+                    "repo_id": repo_id,
+                    "pr_number": pr_number,
+                    # Flatten for UI convenience
+                    "pr_title": pr_data.get("title", "N/A"),
+                    "pr_author": pr_data.get("author", "N/A"),
+                    "pr_state": pr_data.get("state", "N/A"),
+                    "files_changed": pr_data.get("changed_files", 0),
+                    "additions": pr_data.get("additions", 0),
+                    "deletions": pr_data.get("deletions", 0),
+                    "review_units_count": len(review_units),
+                    "high_priority_units_count": 0  # Calculate if needed
+                }
+                
+            except Exception as e:
+                steps[-1]["status"] = "error"
+                steps[-1]["message"] = f"✗ Failed to fetch PR: {str(e)}"
+                return {"success": False, "steps": steps, "error": str(e)}
+                
+        except Exception as e:
             return {
-                'success': False,
-                'error': str(e),
-                'progress': progress
+                "success": False,
+                "steps": steps,
+                "error": str(e)
             }
-        
-        # Step 2: Validate token
-        progress.append({
-            'step': 'validate_token',
-            'status': 'in_progress',
-            'message': 'Validating GitHub token...',
-            'timestamp': datetime.now().isoformat()
-        })
-        
-        token = github_token or self.settings.github_token
-        if not token:
-            progress.append({
-                'step': 'validate_token',
-                'status': 'error',
-                'message': 'GitHub token required',
-                'timestamp': datetime.now().isoformat()
-            })
-            return {
-                'success': False,
-                'error': 'GitHub token required',
-                'progress': progress
-            }
-        
-        progress.append({
-            'step': 'validate_token',
-            'status': 'success',
-            'message': 'GitHub token validated',
-            'timestamp': datetime.now().isoformat()
-        })
-        
-        # Step 3: Fetch PR data
-        progress.append({
-            'step': 'fetch_pr',
-            'status': 'in_progress',
-            'message': f'Fetching PR #{pr_number} from GitHub...',
-            'timestamp': datetime.now().isoformat()
-        })
+    
+    async def run_workflow_execution(
+        self,
+        repo_url: str,
+        pr_number: int,
+        pr_data: Dict[str, Any],
+        review_units: List[Dict[str, Any]],
+        github_token: Optional[str] = None,
+        run_evaluation: bool = False
+    ) -> Dict[str, Any]:
+        """Run Phase 3-6: Workflow Execution (Retrieval → Review → Guardrails → HITL → Publish → Persist)."""
+        steps = []
         
         try:
-            coordinator = PRReviewCoordinator(github_token=token)
+            # Parse URL
+            owner, name = self.parse_github_url(repo_url)
+            repo_id = f"{owner}/{name}"
             
-            fetch_start = time.time()
-            session = coordinator.prepare_pr_review(
-                repo_full_name=repo_full_name,
-                pr_number=pr_number,
-                strategy="per_hunk"
-            )
-            fetch_time = time.time() - fetch_start
+            # Step 1: Create Initial State
+            steps.append({"step": "create_state", "status": "in_progress", "message": "Creating workflow state"})
+            try:
+                from app.workflow import WorkflowState
+                import uuid
+                import hashlib
+                
+                # Convert review_units to hunks format
+                hunks = []
+                for unit in review_units:
+                    hunks.append({
+                        "hunk_id": unit.get("hunk_id", ""),
+                        "file_path": unit.get("file_path", ""),
+                        "old_line_start": unit.get("old_line_start", 0),
+                        "old_line_end": unit.get("old_line_end", 0),
+                        "new_line_start": unit.get("new_line_start", 0),
+                        "new_line_end": unit.get("new_line_end", 0),
+                        "added_lines": unit.get("added_lines", []),
+                        "removed_lines": unit.get("removed_lines", []),
+                        "context_lines": unit.get("context_lines", [])
+                    })
+                
+                # Create diff hash for caching
+                diff_content = str(hunks)
+                diff_hash = hashlib.md5(diff_content.encode()).hexdigest()
+                
+                initial_state = WorkflowState(
+                    run_id=str(uuid.uuid4()),
+                    repo_owner=owner,
+                    repo_name=name,
+                    repo_id=repo_id,
+                    pr_number=pr_number,
+                    pr_sha=pr_data.get("head", {}).get("sha", ""),
+                    diff_hash=diff_hash,
+                    hunks=hunks,
+                    review_issues=[],
+                    fix_tasks=[],
+                    retrieval_bundles={},
+                    guardrail_result=None,
+                    hitl_decision=None,
+                    posted_comment_url=None,
+                    notification_sent=False,
+                    persisted=False,
+                    persistence_path=None,
+                    errors=[],
+                    current_node=None,
+                    started_at=datetime.now()
+                )
+                
+                steps[-1]["status"] = "success"
+                steps[-1]["message"] = f"✓ State created with {len(hunks)} hunks"
+            except Exception as e:
+                steps[-1]["status"] = "error"
+                steps[-1]["message"] = f"✗ Failed to create state: {str(e)}"
+                return {"success": False, "steps": steps, "error": str(e)}
             
-            coordinator.close()
+            # Step 2: Create Workflow
+            steps.append({"step": "create_workflow", "status": "in_progress", "message": "Building LangGraph workflow"})
+            try:
+                from app.workflow import create_review_workflow
+                
+                token = github_token or self.settings.github_token
+                workflow = create_review_workflow(
+                    github_token=token,
+                    settings=self.settings
+                )
+                
+                steps[-1]["status"] = "success"
+                steps[-1]["message"] = "✓ Workflow graph created with 7 agent nodes"
+            except Exception as e:
+                steps[-1]["status"] = "error"
+                steps[-1]["message"] = f"✗ Failed to create workflow: {str(e)}"
+                return {"success": False, "steps": steps, "error": str(e)}
             
-            progress.append({
-                'step': 'fetch_pr',
-                'status': 'success',
-                'message': f'PR fetched and parsed: {session.pr_data.title}',
-                'data': {
-                    'pr_title': session.pr_data.title,
-                    'pr_state': session.pr_data.state,
-                    'pr_author': session.pr_data.author,
-                    'files_changed': len(session.file_diffs),
-                    'additions': session.pr_data.additions,
-                    'deletions': session.pr_data.deletions,
-                    'review_units': len(session.review_units),
-                    'high_priority_units': len(session.high_priority_units),
-                    'fetch_time': fetch_time
-                },
-                'timestamp': datetime.now().isoformat()
-            })
-            
-            return {
-                'success': True,
-                'repo_owner': repo_owner,
-                'repo_name': repo_name,
-                'repo_full_name': repo_full_name,
-                'pr_number': pr_number,
-                'pr_title': session.pr_data.title,
-                'pr_state': session.pr_data.state,
-                'pr_author': session.pr_data.author,
-                'files_changed': len(session.file_diffs),
-                'additions': session.pr_data.additions,
-                'deletions': session.pr_data.deletions,
-                'review_units_count': len(session.review_units),
-                'high_priority_units_count': len(session.high_priority_units),
-                'fetch_time': fetch_time,
-                'progress': progress,
-                'duration': time.time() - start_time
-            }
-            
+            # Step 3: Run Workflow
+            steps.append({"step": "run_workflow", "status": "in_progress", "message": "Executing workflow agents"})
+            try:
+                from app.workflow import WorkflowState as WFState
+                
+                # Create config for checkpointing
+                config = {"configurable": {"thread_id": initial_state.run_id}}
+                
+                # Start workflow execution
+                print(f"\n{'='*80}")
+                print(f"🚀 Starting Workflow - Run ID: {initial_state.run_id}")
+                print(f"{'='*80}\n")
+                
+                # Stream workflow events
+                for event in workflow.stream(initial_state.model_dump(), config):
+                    # Check if we hit a breakpoint (HITL)
+                    if '__interrupt__' in event:
+                        # Workflow paused at HITL - store for resumption
+                        print(f"\n⏸️  Workflow paused at HITL - awaiting user decision")
+                        
+                        # Store workflow for later resumption
+                        self.active_workflows[initial_state.run_id] = {
+                            'workflow': workflow,
+                            'config': config,
+                            'started_at': datetime.now()
+                        }
+                        
+                        # Get current state to return HITL data
+                        current_state = workflow.get_state(config)
+                        state_dict = current_state.values
+                        
+                        # Extract interrupt data (it's stored in the Interrupt object)
+                        interrupt_obj = event['__interrupt__']
+                        
+                        # The interrupt() function returns data that gets stored
+                        # We passed a dict with review summary info
+                        try:
+                            # Access the value from the Interrupt object
+                            if hasattr(interrupt_obj, 'value'):
+                                hitl_data = interrupt_obj.value
+                            elif isinstance(interrupt_obj, (list, tuple)) and len(interrupt_obj) > 0:
+                                hitl_data = interrupt_obj[0].value if hasattr(interrupt_obj[0], 'value') else {}
+                            else:
+                                # Fallback: construct from current state
+                                hitl_data = {
+                                    "type": "hitl_decision_required",
+                                    "issues_count": len(state_dict.get('review_issues', [])),
+                                    "tasks_count": len(state_dict.get('fix_tasks', [])),
+                                    "guardrails_passed": state_dict.get('guardrail_result', {}).get('passed', True) if isinstance(state_dict.get('guardrail_result'), dict) else True,
+                                    "summary": "Review complete - decision required"
+                                }
+                        except Exception as e:
+                            print(f"Warning: Could not extract interrupt data: {e}")
+                            hitl_data = {
+                                "type": "hitl_decision_required",
+                                "issues_count": len(state_dict.get('review_issues', [])),
+                                "tasks_count": len(state_dict.get('fix_tasks', [])),
+                                "summary": "Review complete - decision required"
+                            }
+                        
+                        # Return partial results with HITL requirement
+                        return {
+                            "success": True,
+                            "paused_at_hitl": True,
+                            "run_id": initial_state.run_id,
+                            "hitl_data": hitl_data,
+                            "review_issues": state_dict.get('review_issues', []),
+                            "fix_tasks": state_dict.get('fix_tasks', []),
+                            "guardrail_result": state_dict.get('guardrail_result'),
+                            "steps": steps
+                        }
+                
+                # Workflow completed without interruption
+                final_state_dict = workflow.get_state(config).values
+                final_state = WFState(**final_state_dict)
+                
+                steps[-1]["status"] = "success"
+                steps[-1]["message"] = "✓ Workflow execution complete"
+                
+                # Add detailed step results
+                steps.append({
+                    "step": "retrieval",
+                    "status": "success",
+                    "message": f"✓ Retrieved {len(final_state.retrieval_bundles)} context bundles"
+                })
+                
+                steps.append({
+                    "step": "review",
+                    "status": "success",
+                    "message": f"✓ Found {len(final_state.review_issues)} issues"
+                })
+                
+                steps.append({
+                    "step": "planning",
+                    "status": "success",
+                    "message": f"✓ Created {len(final_state.fix_tasks)} fix tasks"
+                })
+                
+                guardrail_passed = final_state.guardrail_result.passed if final_state.guardrail_result else True
+                steps.append({
+                    "step": "guardrails",
+                    "status": "success" if guardrail_passed else "warning",
+                    "message": f"✓ Guardrails {'passed' if guardrail_passed else 'failed'}"
+                })
+                
+                hitl_action = final_state.hitl_decision.action if final_state.hitl_decision else "unknown"
+                steps.append({
+                    "step": "hitl",
+                    "status": "success",
+                    "message": f"✓ HITL decision: {hitl_action}"
+                })
+                
+                if final_state.posted_comment_url:
+                    steps.append({
+                        "step": "publish",
+                        "status": "success",
+                        "message": "✓ Published to GitHub"
+                    })
+                
+                if final_state.notification_sent:
+                    steps.append({
+                        "step": "notify",
+                        "status": "success",
+                        "message": "✓ Notifications sent"
+                    })
+                
+                steps.append({
+                    "step": "persist",
+                    "status": "success",
+                    "message": "✓ Workflow state persisted"
+                })
+                
+                return {
+                    "success": True,
+                    "steps": steps,
+                    "final_state": final_state.model_dump(mode='json'),
+                    "run_id": final_state.run_id,
+                    "review_issues": [issue.model_dump(mode='json') for issue in final_state.review_issues],
+                    "fix_tasks": [task.model_dump(mode='json') for task in final_state.fix_tasks],
+                    "guardrail_result": final_state.guardrail_result.model_dump(mode='json') if final_state.guardrail_result else None,
+                    "hitl_decision": final_state.hitl_decision.model_dump(mode='json') if final_state.hitl_decision else None,
+                    "posted_comment_url": final_state.posted_comment_url,
+                    "notification_sent": final_state.notification_sent,
+                    "persistence_path": final_state.persistence_path
+                }
+                
+            except Exception as e:
+                steps[-1]["status"] = "error"
+                steps[-1]["message"] = f"✗ Workflow execution failed: {str(e)}"
+                import traceback
+                return {"success": False, "steps": steps, "error": str(e), "traceback": traceback.format_exc()}
+                
         except Exception as e:
             import traceback
-            error_trace = traceback.format_exc()
+            return {
+                "success": False,
+                "steps": steps,
+                "error": str(e),
+                "traceback": traceback.format_exc()
+            }
+    
+    async def resume_workflow_with_hitl(
+        self,
+        run_id: str,
+        action: str,
+        edited_content: Optional[str] = None,
+        feedback: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Resume workflow after HITL decision."""
+        from app.workflow import WorkflowState as WFState
+        from app.workflow.state import HITLAction
+        
+        # Check if workflow exists
+        if run_id not in self.active_workflows:
+            return {"success": False, "error": "Workflow not found or already completed"}
+        
+        workflow_info = self.active_workflows[run_id]
+        workflow = workflow_info['workflow']
+        config = workflow_info['config']
+        
+        # Create HITL decision object
+        from app.workflow.state import HITLDecision
+        
+        decision = HITLDecision(
+            action=HITLAction(action),
+            edited_content=edited_content,
+            feedback=feedback or f"User selected: {action}"
+        )
+        
+        try:
+            # Update state with HITL decision
+            current_state = workflow.get_state(config)
             
-            progress.append({
-                'step': 'fetch_pr',
-                'status': 'error',
-                'message': f'PR fetch failed: {str(e)}',
-                'timestamp': datetime.now().isoformat()
-            })
+            # Update the state with the decision
+            workflow.update_state(
+                config,
+                {"hitl_decision": decision}
+            )
+            
+            # Continue workflow execution from interrupt
+            for event in workflow.stream(None, config):
+                pass  # Continue to completion
+            
+            # Get final state
+            final_state_dict = workflow.get_state(config).values
+            final_state = WFState(**final_state_dict)
+            
+            # Remove from active workflows
+            del self.active_workflows[run_id]
+            
+            # Return final results
+            steps = []
+            steps.append({"step": "hitl_resumed", "status": "success", "message": f"✓ HITL decision: {action}"})
+            
+            if final_state.posted_comment_url:
+                steps.append({"step": "publish", "status": "success", "message": "✓ Published to GitHub"})
+            
+            if final_state.notification_sent:
+                steps.append({"step": "notify", "status": "success", "message": "✓ Notifications sent"})
+            
+            steps.append({"step": "persist", "status": "success", "message": "✓ Workflow state persisted"})
             
             return {
-                'success': False,
-                'error': str(e),
-                'traceback': error_trace,
-                'progress': progress,
-                'duration': time.time() - start_time
+                "success": True,
+                "workflow_complete": True,
+                "steps": steps,
+                "final_state": final_state.model_dump(mode='json'),
+                "posted_comment_url": final_state.posted_comment_url,
+                "notification_sent": final_state.notification_sent,
+                "persistence_path": final_state.persistence_path
             }
+        except Exception as e:
+            import traceback
+            return {
+                "success": False,
+                "error": str(e),
+                "traceback": traceback.format_exc()
+            }
+    
+    async def get_workflow_status(self, run_id: str) -> Dict[str, Any]:
+        """Get current workflow status."""
+        if run_id not in self.active_workflows:
+            return {"success": False, "error": "Workflow not found"}
+        
+        workflow_info = self.active_workflows[run_id]
+        workflow = workflow_info['workflow']
+        config = workflow_info['config']
+        
+        # Get current state
+        current_state = workflow.get_state(config)
+        
+        return {
+            "success": True,
+            "run_id": run_id,
+            "current_node": current_state.next,
+            "state": current_state.values,
+            "paused_at_hitl": "hitl" in (current_state.next or [])
+        }

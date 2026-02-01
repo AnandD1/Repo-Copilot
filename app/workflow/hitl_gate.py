@@ -176,35 +176,31 @@ class HITLGate:
                 )
             }
         
-        try:
-            # Check if guardrails blocked
-            if state.guardrail_result and not state.guardrail_result.passed:
-                print("  ⚠ Guardrails FAILED - showing blocked reasons to user")
-            
-            # Request decision
-            decision = self.request_human_decision(state)
-            
-            # Handle both enum and string
-            action_str = decision.action.value if hasattr(decision.action, 'value') else str(decision.action)
-            print(f"\n  Decision: {action_str}")
-            if decision.feedback:
-                print(f"  Feedback: {decision.feedback}")
-            
-            return {
-                "hitl_decision": decision,
-                "current_node": "hitl"
-            }
-            
-        except Exception as e:
-            error_msg = f"HITL gate failed: {e}"
-            print(f"  ✗ {error_msg}")
-            
-            # Default to reject on error
-            return {
-                "hitl_decision": HITLDecision(
-                    action=HITLAction.REJECT,
-                    feedback=f"Error during HITL: {e}"
-                ),
-                "current_node": "hitl",
-                "errors": state.errors + [error_msg]
-            }
+        # For web interface: check if decision already provided
+        if state.hitl_decision:
+            print(f"  ✓ Decision already provided: {state.hitl_decision.action}")
+            return {}
+        
+        # No decision yet - pause workflow and wait for web UI
+        print("  ⏸️  Pausing workflow - awaiting decision from web interface...")
+        
+        # Use LangGraph interrupt to pause execution
+        from langgraph.types import interrupt
+        
+        # Format summary for display
+        summary = self.format_review_summary(state)
+        
+        # Interrupt execution and return summary to UI
+        # The interrupt will pause here until workflow.update_state() is called with hitl_decision
+        interrupt({
+            "type": "hitl_decision_required",
+            "summary": summary,
+            "issues_count": len(state.review_issues),
+            "tasks_count": len(state.fix_tasks),
+            "guardrails_passed": state.guardrail_result.passed if state.guardrail_result else True,
+            "blocked_reasons": state.guardrail_result.blocked_reasons if state.guardrail_result else []
+        })
+        
+        # After resume, the decision should be in state
+        # Return empty dict as state was already updated
+        return {}

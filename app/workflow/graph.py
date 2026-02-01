@@ -76,7 +76,7 @@ def create_review_workflow(
     reviewer = ReviewerAgent()
     planner = PatchPlannerAgent()
     guardrail = GuardrailAgent()
-    hitl = HITLGate()
+    hitl = HITLGate(auto_approve=False)  # Wait for web UI decision
     publisher = PublisherNotifier(github_token=github_token, settings=settings)
     persistence = PersistenceAgent()
     

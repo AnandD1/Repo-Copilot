@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime
 
 from app.api.orchestrator import WorkflowOrchestrator
@@ -24,6 +24,16 @@ class PRFetchRequest(BaseModel):
     repo_url: str = Field(..., description="GitHub repository URL")
     pr_number: int = Field(..., description="Pull request number", gt=0)
     github_token: Optional[str] = Field(None, description="GitHub token (optional)")
+
+
+class ExecuteWorkflowRequest(BaseModel):
+    """Request model for workflow execution (Phase 3-6)."""
+    repo_url: str = Field(..., description="GitHub repository URL")
+    pr_number: int = Field(..., description="Pull request number", gt=0)
+    pr_data: Dict[str, Any] = Field(..., description="PR data from Phase 2")
+    review_units: List[Dict[str, Any]] = Field(..., description="Review units from Phase 2")
+    github_token: Optional[str] = Field(None, description="GitHub token (optional)")
+    run_evaluation: bool = Field(False, description="Run evaluation metrics")
 
 
 class PRReviewRequest(BaseModel):
@@ -193,6 +203,80 @@ async def ingest_repository(request: IngestRequest):
 
 @router.post("/fetch-pr", response_model=Dict[str, Any])
 async def fetch_pr(request: PRFetchRequest):
+    """Fetch and parse a pull request (Phase 2)."""
+    try:
+        result = await orchestrator.run_pr_fetch_only(
+            repo_url=request.repo_url,
+            pr_number=request.pr_number,
+            github_token=request.github_token
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/execute-workflow", response_model=Dict[str, Any])
+async def execute_workflow(request: ExecuteWorkflowRequest):
+    """Execute workflow agents (Phase 3-6: Retrieval → Review → Guardrails → HITL → Publish → Persist)."""
+    try:
+        result = await orchestrator.run_workflow_execution(
+            repo_url=request.repo_url,
+            pr_number=request.pr_number,
+            pr_data=request.pr_data,
+            review_units=request.review_units,
+            github_token=request.github_token,
+            run_evaluation=request.run_evaluation
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class HITLDecisionRequest(BaseModel):
+    """Request model for HITL decision."""
+    run_id: str = Field(..., description="Workflow run ID")
+    action: str = Field(..., description="HITL action: approve, edit, reject, post_summary_only")
+    edited_content: Optional[str] = Field(None, description="Edited review content")
+    feedback: Optional[str] = Field(None, description="User feedback")
+
+
+@router.post("/hitl-decision", response_model=Dict[str, Any])
+async def submit_hitl_decision(request: HITLDecisionRequest):
+    """Submit HITL decision and resume workflow."""
+    try:
+        result = await orchestrator.resume_workflow_with_hitl(
+            run_id=request.run_id,
+            action=request.action,
+            edited_content=request.edited_content,
+            feedback=request.feedback
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/workflow-status/{run_id}", response_model=Dict[str, Any])
+async def get_workflow_status(run_id: str):
+    """Get current workflow status."""
+    try:
+        result = await orchestrator.get_workflow_status(run_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    """Fetch and parse a pull request (Phase 2)."""
+    try:
+        result = await orchestrator.run_pr_fetch_only(
+            repo_url=request.repo_url,
+            pr_number=request.pr_number,
+            github_token=request.github_token
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/execute-workflow", response_model=Dict[str, Any])
+async def execute_workflow(request: ExecuteWorkflowRequest):
     """
     Step 2: Fetch and parse PR.
     

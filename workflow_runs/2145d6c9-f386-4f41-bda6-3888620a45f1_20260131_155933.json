@@ -1,0 +1,98 @@
+{
+  "run_id": "2145d6c9-f386-4f41-bda6-3888620a45f1",
+  "started_at": "2026-01-31T15:58:42.602808",
+  "repo_owner": "AnandD1",
+  "repo_name": "ScratchYOLO",
+  "repo_id": "AnandD1/ScratchYOLO",
+  "pr_number": 2,
+  "pr_sha": "ae671b8a7949cc4b718cfa51f363bfdff4ad9576",
+  "diff_hash": "1cf050ec2adcedaf00a0a66a50b18c9a",
+  "hunks": [
+    {
+      "hunk_id": "app/streamlit_app.py:65",
+      "file_path": "app/streamlit_app.py",
+      "old_line_start": 65,
+      "old_line_end": 71,
+      "new_line_start": 65,
+      "new_line_end": 71,
+      "added_lines": [
+        "            border-radius: 18px;"
+      ],
+      "removed_lines": [
+        "            border-radius: 14px;"
+      ],
+      "context_lines": [
+        "        .card {{",
+        "            background: rgba(37, 46, 138, 0.16);",
+        "            border: 1px solid rgba(247, 246, 247, 0.10);",
+        "            padding: 14px;",
+        "        }}",
+        ""
+      ]
+    }
+  ],
+  "retrieval_bundles": {
+    "app/streamlit_app.py:65": {
+      "hunk_id": "app/streamlit_app.py:65",
+      "local_context": [],
+      "similar_code": [],
+      "conventions": [],
+      "total_chunks": 0
+    }
+  },
+  "review_issues": [
+    {
+      "severity": "minor",
+      "category": "style",
+      "file_path": "app/streamlit_app.py",
+      "line_number": 65,
+      "explanation": "The border-radius value has been increased from 14px to 18px. This change may affect the visual appearance of the card component.",
+      "suggestion": "Consider whether this change is necessary and if it aligns with the design guidelines. If not, revert the change or update the design documentation accordingly.",
+      "evidence_references": [
+        "app/streamlit_app.py:65-71"
+      ]
+    }
+  ],
+  "fix_tasks": [
+    {
+      "task_id": "task_1",
+      "title": "Review and adjust border-radius values in card components",
+      "why_it_matters": "Ensures consistency with design guidelines and prevents potential visual inconsistencies",
+      "affected_files": [
+        "app/streamlit_app.py"
+      ],
+      "suggested_approach": "Revert the change to 14px or update the design documentation if the new value is intentional",
+      "effort_estimate": "S",
+      "related_issues": [
+        0
+      ]
+    }
+  ],
+  "guardrail_result": {
+    "passed": true,
+    "blocked_reasons": [],
+    "warnings": [],
+    "checks_performed": [
+      "schema_validation",
+      "secret_scanning",
+      "prompt_injection_guard",
+      "evidence_enforcement"
+    ]
+  },
+  "hitl_decision": {
+    "action": "approve",
+    "edited_content": null,
+    "feedback": "Auto-approved for web interface",
+    "timestamp": "2026-01-31T15:59:33.115146"
+  },
+  "posted_comment_url": "https://github.com/AnandD1/ScratchYOLO/pull/2#comment-mock",
+  "notification_sent": true,
+  "persisted": false,
+  "persistence_path": null,
+  "errors": [],
+  "current_node": "publisher",
+  "_metadata": {
+    "saved_at": "2026-01-31T15:59:33.603883",
+    "version": "1.0"
+  }
+}

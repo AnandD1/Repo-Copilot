@@ -88,12 +88,22 @@ if 'ingestion_result' not in st.session_state:
     st.session_state.ingestion_result = None
 if 'pr_fetch_result' not in st.session_state:
     st.session_state.pr_fetch_result = None
+if 'workflow_result' not in st.session_state:
+    st.session_state.workflow_result = None
 if 'is_loading' not in st.session_state:
     st.session_state.is_loading = False
 if 'current_repo' not in st.session_state:
     st.session_state.current_repo = None
 if 'current_phase' not in st.session_state:
     st.session_state.current_phase = 1
+if 'hitl_paused' not in st.session_state:
+    st.session_state.hitl_paused = False
+if 'hitl_data' not in st.session_state:
+    st.session_state.hitl_data = None
+if 'run_id' not in st.session_state:
+    st.session_state.run_id = None
+if 'editing_review' not in st.session_state:
+    st.session_state.editing_review = False
 
 
 def check_api_health():
@@ -239,6 +249,7 @@ with st.sidebar:
                 st.success("✅ Cleanup complete")
                 st.session_state.ingestion_result = None
                 st.session_state.pr_fetch_result = None
+                st.session_state.workflow_result = None
                 st.session_state.current_repo = None
                 st.session_state.current_phase = 1
                 time.sleep(1)
@@ -462,14 +473,9 @@ elif st.session_state.current_phase == 2:
                     st.info(f"**Review Units:** {result.get('review_units_count', 0)} | **High Priority:** {result.get('high_priority_units_count', 0)}")
                     
                     # Next phase button
-                    st.markdown("""
-                    <div class="success-box">
-                        <b>✨ Phase 2 Complete!</b><br>
-                        PR data fetched and parsed successfully. Ready for Phase 3 (Retrieval & Review).<br>
-                        <br>
-                        <i>Phase 3 and beyond will be available in the next update.</i>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    if st.button("➡️ Proceed to Phase 3-6: Workflow Execution", type="primary", key="phase2_next"):
+                        st.session_state.current_phase = 3
+                        st.rerun()
                     
                 else:
                     st.error(f"❌ PR fetch failed: {result.get('error', 'Unknown error')}")
@@ -503,6 +509,11 @@ elif st.session_state.current_phase == 2:
             
             st.info(f"**PR Title:** {result.get('pr_title', 'N/A')}")
             st.info(f"**Author:** {result.get('pr_author', 'N/A')} | **State:** {result.get('pr_state', 'N/A')}")
+            
+            # Next phase button
+            if st.button("➡️ Proceed to Phase 3-6: Workflow Execution", type="primary", key="phase2_prev_next"):
+                st.session_state.current_phase = 3
+                st.rerun()
         else:
             st.error(f"❌ PR fetch failed: {result.get('error', 'Unknown error')}")
     
@@ -510,6 +521,439 @@ elif st.session_state.current_phase == 2:
     st.divider()
     if st.button("⬅️ Back to Phase 1"):
         st.session_state.current_phase = 1
+        st.rerun()
+
+elif st.session_state.current_phase == 3:
+    st.header("⚡ Phase 3-6: Workflow Execution")
+    
+    st.markdown("""
+    <div class="info-box">
+        <b>ℹ️ Workflow Execution</b><br>
+        This step will run the complete review workflow:
+        <ul>
+            <li><b>Phase 3:</b> Retrieval - Fetch relevant code context from vector store</li>
+            <li><b>Phase 4:</b> Review - Analyze hunks and generate review issues</li>
+            <li><b>Phase 4:</b> Planning - Create fix plan from issues</li>
+            <li><b>Phase 5:</b> Guardrails - Validate review quality and run safety checks</li>
+            <li><b>Phase 5:</b> HITL - Human-in-the-loop approval decision</li>
+            <li><b>Phase 6:</b> Publish - Post review to GitHub</li>
+            <li><b>Phase 6:</b> Notify - Send Slack notifications</li>
+            <li><b>Phase 6:</b> Persist - Save workflow results to disk</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Show previous phases summary
+    if st.session_state.ingestion_result and st.session_state.pr_fetch_result:
+        with st.expander("✅ Phase 1-2 Complete", expanded=False):
+            ing_result = st.session_state.ingestion_result
+            pr_result = st.session_state.pr_fetch_result
+            st.write(f"**Repository:** {ing_result.get('repo_id', 'N/A')}")
+            st.write(f"**Chunks:** {ing_result.get('chunks_created', 'N/A')}")
+            st.write(f"**PR #{pr_result.get('pr_number', 'N/A')}:** {pr_result.get('pr_title', 'N/A')}")
+            st.write(f"**Review Units:** {pr_result.get('review_units_count', 0)}")
+    
+    # Execute button
+    execute_btn = st.button(
+        "🚀 Execute Workflow",
+        disabled=not health_status or st.session_state.is_loading or not st.session_state.pr_fetch_result,
+        use_container_width=True,
+        type="primary"
+    )
+    
+    # Handle workflow execution
+    if execute_btn and st.session_state.pr_fetch_result:
+        st.session_state.is_loading = True
+        st.session_state.workflow_result = None
+        st.session_state.hitl_paused = False
+        
+        with st.container():
+            st.subheader("📊 Workflow Execution Progress")
+            
+            with st.spinner("Running workflow agents (this may take 2-3 minutes)..."):
+                try:
+                    pr_result = st.session_state.pr_fetch_result
+                    
+                    response = requests.post(
+                        f"{API_BASE_URL}/execute-workflow",
+                        json={
+                            "repo_url": pr_result.get("repo_id", ""),
+                            "pr_number": pr_result.get("pr_number", 0),
+                            "pr_data": pr_result.get("pr_data", {}),
+                            "review_units": pr_result.get("review_units", []),
+                            "github_token": None,
+                            "run_evaluation": False
+                        },
+                        timeout=300
+                    )
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        
+                        # Check if workflow paused at HITL
+                        if result.get('paused_at_hitl'):
+                            st.session_state.hitl_paused = True
+                            st.session_state.hitl_data = result.get('hitl_data', {})
+                            st.session_state.run_id = result.get('run_id')
+                            st.session_state.workflow_result = result
+                            st.session_state.is_loading = False
+                            st.rerun()
+                        else:
+                            # Workflow completed normally (shouldn't happen with new HITL)
+                            st.session_state.workflow_result = result
+                            st.session_state.is_loading = False
+                        
+                        # Display progress steps
+                        if 'steps' in result:
+                            for step in result['steps']:
+                                render_progress_step(step)
+                        
+                        # Display final result
+                        st.divider()
+                        
+                        if result.get('success'):
+                            st.success("✅ Workflow execution complete!")
+                            
+                            # Metrics
+                            final_state = result.get('final_state', {})
+                            col1, col2, col3, col4 = st.columns(4)
+                            with col1:
+                                st.metric("Issues Found", len(final_state.get('review_issues', [])))
+                            with col2:
+                                st.metric("Fix Tasks", len(final_state.get('fix_tasks', [])))
+                            with col3:
+                                guardrail = final_state.get('guardrail_result', {})
+                                st.metric("Guardrail", "✅ Passed" if guardrail.get('passed') else "❌ Failed")
+                            with col4:
+                                hitl = final_state.get('hitl_decision')
+                                hitl_action = hitl.get('action', 'N/A').upper() if hitl else 'N/A'
+                                st.metric("Decision", hitl_action)
+                            
+                            # Review Issues
+                            with st.expander("📋 Review Issues", expanded=True):
+                                issues = final_state.get('review_issues', [])
+                                if issues:
+                                    for i, issue in enumerate(issues):
+                                        severity_colors = {
+                                            "blocker": "🔴",
+                                            "major": "🟠",
+                                            "minor": "🟡",
+                                            "nit": "⚪"
+                                        }
+                                        severity_icon = severity_colors.get(issue.get('severity', 'nit'), "⚪")
+                                        st.markdown(f"{severity_icon} **{issue.get('category', 'Unknown').upper()}** - {issue.get('file_path', 'Unknown')}:{issue.get('line_number', 0)}")
+                                        st.write(f"*{issue.get('explanation', '')}*")
+                                        st.code(issue.get('suggestion', ''), language="text")
+                                        st.divider()
+                                else:
+                                    st.info("No issues found!")
+                            
+                            # Fix Tasks
+                            with st.expander("🔧 Fix Plan", expanded=True):
+                                tasks = final_state.get('fix_tasks', [])
+                                if tasks:
+                                    for task in tasks:
+                                        effort_colors = {"S": "🟢", "M": "🟡", "L": "🔴"}
+                                        effort_icon = effort_colors.get(task.get('effort_estimate', 'M'), "🟡")
+                                        st.markdown(f"{effort_icon} **{task.get('title', 'Unknown')}** ({task.get('effort_estimate', 'M')})")
+                                        st.write(f"*{task.get('why_it_matters', '')}*")
+                                        st.write(f"**Approach:** {task.get('suggested_approach', '')}")
+                                        st.write(f"**Files:** {', '.join(task.get('affected_files', []))}")
+                                        st.divider()
+                                else:
+                                    st.info("No fix tasks generated.")
+                            
+                            # Publish Result
+                            if result.get('posted_comment_url'):
+                                with st.expander("📢 Publish Result", expanded=False):
+                                    st.write(f"**Comment URL:** {result['posted_comment_url']}")
+                                    st.write(f"**Notifications Sent:** {'✅ Yes' if result.get('notification_sent') else '❌ No'}")
+                                    if result.get('persistence_path'):
+                                        st.write(f"**Saved to:** {result['persistence_path']}")
+                        else:
+                            st.error(f"❌ Workflow execution failed: {result.get('error', 'Unknown error')}")
+                            
+                            if 'traceback' in result:
+                                with st.expander("🔍 Error Details"):
+                                    st.code(result['traceback'], language='python')
+                    else:
+                        st.session_state.is_loading = False
+                        st.error(f"❌ Request failed: {response.text}")
+                        
+                except Exception as e:
+                    st.session_state.is_loading = False
+                    st.error(f"❌ Error: {str(e)}")
+    
+    # HITL Decision UI (when workflow paused)
+    if st.session_state.hitl_paused and st.session_state.hitl_data:
+        st.divider()
+        st.subheader("👤 Human-in-the-Loop: Review Decision Required")
+        
+        result = st.session_state.workflow_result
+        hitl_data = st.session_state.hitl_data
+        
+        # Display progress steps up to HITL
+        with st.expander("✅ Workflow Progress (Paused at HITL)", expanded=False):
+            if 'steps' in result:
+                for step in result['steps']:
+                    render_progress_step(step)
+        
+        # Display review summary
+        st.markdown("""
+        <div class="info-box">
+            <b>⏸️ Workflow Paused</b><br>
+            The workflow has completed the review and is waiting for your decision.
+            Please review the findings below and choose an action.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Summary metrics
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Issues Found", hitl_data.get('issues_count', 0))
+        with col2:
+            st.metric("Fix Tasks", hitl_data.get('tasks_count', 0))
+        with col3:
+            guardrails_passed = hitl_data.get('guardrails_passed', True)
+            st.metric("Guardrails", "✅ Passed" if guardrails_passed else "❌ Failed")
+        
+        # Show guardrail warnings if failed
+        if not guardrails_passed and hitl_data.get('blocked_reasons'):
+            st.warning("**Guardrails Failed:**")
+            for reason in hitl_data['blocked_reasons']:
+                st.write(f"- {reason}")
+        
+        # Review Summary (from formatted text)
+        with st.expander("📋 Detailed Review Summary", expanded=True):
+            summary_text = hitl_data.get('summary', '')
+            st.text(summary_text)
+        
+        # Review Issues
+        with st.expander("🐛 Review Issues", expanded=True):
+            issues = result.get('review_issues', [])
+            if issues:
+                for i, issue in enumerate(issues):
+                    severity_colors = {"blocker": "🔴", "major": "🟠", "minor": "🟡", "nit": "⚪"}
+                    severity_icon = severity_colors.get(issue.get('severity', 'nit'), "⚪")
+                    st.markdown(f"{severity_icon} **{issue.get('category', 'Unknown').upper()}** - {issue.get('file_path', 'Unknown')}:{issue.get('line_number', 0)}")
+                    st.write(f"*{issue.get('explanation', '')}*")
+                    st.code(issue.get('suggestion', ''), language="text")
+                    st.divider()
+            else:
+                st.info("No issues found!")
+        
+        # Fix Plan
+        with st.expander("🔧 Suggested Fix Plan", expanded=True):
+            tasks = result.get('fix_tasks', [])
+            if tasks:
+                for task in tasks:
+                    effort_colors = {"S": "🟢", "M": "🟡", "L": "🔴"}
+                    effort_icon = effort_colors.get(task.get('effort_estimate', 'M'), "🟡")
+                    st.markdown(f"{effort_icon} **{task.get('title', 'Unknown')}** ({task.get('effort_estimate', 'M')})")
+                    st.write(f"*{task.get('why_it_matters', '')}*")
+                    st.write(f"**Approach:** {task.get('suggested_approach', '')}")
+                    st.write(f"**Files:** {', '.join(task.get('affected_files', []))}")
+                    st.divider()
+            else:
+                st.info("No fix tasks generated.")
+        
+        # Decision Buttons
+        st.divider()
+        st.subheader("Make Your Decision")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            if st.button("✅ Approve & Publish", use_container_width=True, type="primary"):
+                # Submit decision
+                with st.spinner("Resuming workflow with approval..."):
+                    response = requests.post(
+                        f"{API_BASE_URL}/hitl-decision",
+                        json={
+                            "run_id": st.session_state.run_id,
+                            "action": "approve",
+                            "feedback": "Approved by user via web UI"
+                        },
+                        timeout=120
+                    )
+                    
+                    if response.status_code == 200:
+                        final_result = response.json()
+                        st.session_state.workflow_result = final_result
+                        st.session_state.hitl_paused = False
+                        st.session_state.hitl_data = None
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to resume workflow: {response.text}")
+        
+        with col2:
+            if st.button("📝 Edit & Publish", use_container_width=True):
+                st.session_state.editing_review = True
+        
+        with col3:
+            if st.button("📄 Summary Only", use_container_width=True):
+                with st.spinner("Resuming workflow with summary only..."):
+                    response = requests.post(
+                        f"{API_BASE_URL}/hitl-decision",
+                        json={
+                            "run_id": st.session_state.run_id,
+                            "action": "post_summary_only",
+                            "feedback": "Post summary only"
+                        },
+                        timeout=120
+                    )
+                    
+                    if response.status_code == 200:
+                        final_result = response.json()
+                        st.session_state.workflow_result = final_result
+                        st.session_state.hitl_paused = False
+                        st.session_state.hitl_data = None
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to resume workflow: {response.text}")
+        
+        with col4:
+            if st.button("❌ Reject", use_container_width=True, type="secondary"):
+                with st.spinner("Stopping workflow..."):
+                    response = requests.post(
+                        f"{API_BASE_URL}/hitl-decision",
+                        json={
+                            "run_id": st.session_state.run_id,
+                            "action": "reject",
+                            "feedback": "Rejected by user via web UI"
+                        },
+                        timeout=120
+                    )
+                    
+                    if response.status_code == 200:
+                        final_result = response.json()
+                        st.session_state.workflow_result = final_result
+                        st.session_state.hitl_paused = False
+                        st.session_state.hitl_data = None
+                        st.info("Workflow rejected and stopped.")
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to resume workflow: {response.text}")
+        
+        # Edit mode
+        if st.session_state.get('editing_review', False):
+            st.divider()
+            st.subheader("✍️ Edit Review Content")
+            
+            edited_content = st.text_area(
+                "Edit the review content:",
+                value=hitl_data.get('summary', ''),
+                height=400
+            )
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("💾 Save & Publish", use_container_width=True, type="primary"):
+                    with st.spinner("Saving edits and resuming workflow..."):
+                        response = requests.post(
+                            f"{API_BASE_URL}/hitl-decision",
+                            json={
+                                "run_id": st.session_state.run_id,
+                                "action": "edit",
+                                "edited_content": edited_content,
+                                "feedback": "User edited the review content"
+                            },
+                            timeout=120
+                        )
+                        
+                        if response.status_code == 200:
+                            final_result = response.json()
+                            st.session_state.workflow_result = final_result
+                            st.session_state.hitl_paused = False
+                            st.session_state.hitl_data = None
+                            st.session_state.editing_review = False
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to resume workflow: {response.text}")
+            
+            with col2:
+                if st.button("🚫 Cancel", use_container_width=True):
+                    st.session_state.editing_review = False
+                    st.rerun()
+    
+    # Show previous result if available (completed workflow)
+    elif st.session_state.workflow_result and not st.session_state.hitl_paused:
+        st.subheader("📊 Previous Workflow Result")
+        
+        result = st.session_state.workflow_result
+        
+        if 'steps' in result:
+            for step in result['steps']:
+                render_progress_step(step)
+        
+        st.divider()
+        
+        if result.get('success'):
+            st.success("✅ Workflow execution complete!")
+            
+            # Metrics
+            final_state = result.get('final_state', {})
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Issues Found", len(final_state.get('review_issues', [])))
+            with col2:
+                st.metric("Fix Tasks", len(final_state.get('fix_tasks', [])))
+            with col3:
+                guardrail = final_state.get('guardrail_result', {})
+                st.metric("Guardrail", "✅ Passed" if guardrail.get('passed') else "❌ Failed")
+            with col4:
+                hitl = final_state.get('hitl_decision')
+                hitl_action = hitl.get('action', 'N/A').upper() if hitl else 'N/A'
+                st.metric("Decision", hitl_action)
+            
+            # Review Issues
+            with st.expander("📋 Review Issues", expanded=True):
+                issues = final_state.get('review_issues', [])
+                if issues:
+                    for i, issue in enumerate(issues):
+                        severity_colors = {
+                            "blocker": "🔴",
+                            "major": "🟠",
+                            "minor": "🟡",
+                            "nit": "⚪"
+                        }
+                        severity_icon = severity_colors.get(issue.get('severity', 'nit'), "⚪")
+                        st.markdown(f"{severity_icon} **{issue.get('category', 'Unknown').upper()}** - {issue.get('file_path', 'Unknown')}:{issue.get('line_number', 0)}")
+                        st.write(f"*{issue.get('explanation', '')}*")
+                        st.code(issue.get('suggestion', ''), language="text")
+                        st.divider()
+                else:
+                    st.info("No issues found!")
+            
+            # Fix Tasks
+            with st.expander("🔧 Fix Plan", expanded=True):
+                tasks = final_state.get('fix_tasks', [])
+                if tasks:
+                    for task in tasks:
+                        effort_colors = {"S": "🟢", "M": "🟡", "L": "🔴"}
+                        effort_icon = effort_colors.get(task.get('effort_estimate', 'M'), "🟡")
+                        st.markdown(f"{effort_icon} **{task.get('title', 'Unknown')}** ({task.get('effort_estimate', 'M')})")
+                        st.write(f"*{task.get('why_it_matters', '')}*")
+                        st.write(f"**Approach:** {task.get('suggested_approach', '')}")
+                        st.write(f"**Files:** {', '.join(task.get('affected_files', []))}")
+                        st.divider()
+                else:
+                    st.info("No fix tasks generated.")
+            
+            # Publish Result
+            if result.get('posted_comment_url'):
+                with st.expander("📢 Publish Result", expanded=False):
+                    st.write(f"**Comment URL:** {result['posted_comment_url']}")
+                    st.write(f"**Notifications Sent:** {'✅ Yes' if result.get('notification_sent') else '❌ No'}")
+                    if result.get('persistence_path'):
+                        st.write(f"**Saved to:** {result['persistence_path']}")
+        else:
+            st.error(f"❌ Workflow execution failed: {result.get('error', 'Unknown error')}")
+    
+    # Back button
+    st.divider()
+    if st.button("⬅️ Back to Phase 2"):
+        st.session_state.current_phase = 2
         st.rerun()
 
 else:
